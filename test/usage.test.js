@@ -24,6 +24,36 @@ test('unavailable and expired usage stays empty', () => {
   assert.deepEqual(usageValues(undefined), {});
   assert.deepEqual(usageValues({ status: 'ready', expiresAt: 0 }), {});
 });
+test('refresh retains unexpired quota while pending and after transient failure', async () => {
+  const ready = {
+    status: 'ready', providerId: 'provider', expiresAt: Date.now() + 60000,
+    report: { providerId: 'provider', providerName: 'Provider', buckets: [] },
+  };
+  let offer = ready;
+  const client = createUsageClient({ events: { emit(_name, request) { request.respond(offer); } } }, () => {});
+  const ctx = { model: { provider: 'provider' }, sessionManager: { getSessionId: () => 'session' } };
+  client.start(ctx);
+  try {
+    await client.refresh();
+    assert.equal(client.values().usage_provider, 'Provider');
+    let settle;
+    offer = new Promise(resolve => { settle = resolve; });
+    const pending = client.refresh();
+    assert.equal(client.values().usage_provider, 'Provider');
+    settle({ status: 'unavailable', providerId: 'provider', reason: 'query-failed' });
+    await pending;
+    assert.equal(client.values().usage_provider, 'Provider');
+    // Superseding an in-flight request must not clear the last valid report.
+    offer = new Promise(() => {});
+    const obsolete = client.refresh();
+    offer = ready;
+    await client.refresh();
+    await obsolete;
+    assert.equal(client.values().usage_provider, 'Provider');
+    ready.expiresAt = Date.now() - 1;
+    assert.deepEqual(client.values(), {});
+  } finally { client.stop(); }
+});
 test('absent service is safe and lifecycle stops polling', async () => {
   const client = createUsageClient({ events: { emit() {} } }, () => {});
   const ctx = { model: { provider: 'provider' }, sessionManager: { getSessionId: () => 'session' } };

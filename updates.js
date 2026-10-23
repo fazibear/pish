@@ -11,7 +11,7 @@ export function patchUpdates(InteractiveMode, getConfig, { Text, Markdown, visib
         const config = getConfig();
         const available = width - visibleWidth(config.marker) - 1;
         if (available < 1) return [];
-        const marker = paint(config.colors.tool, config.marker);
+        const marker = paint(config.marerColors.tool, config.marker);
         const text = new Text(heading + '\n' + body, 0, 0);
         const rows = text.render(available);
         if (note) {

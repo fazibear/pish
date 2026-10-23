@@ -12,24 +12,30 @@ import { patchPendingMessages } from "./pending.js";
 import { patchStatusMessages } from "./status.js";
 import { patchWidgetSpacing } from "./spacing.js";
 import { createUsageClient } from "./usage.js";
+import { patchTextColors } from "./text-colors.js";
+import { configureCursor } from "./cursor.js";
 import { rightPrompt, promptLayout, attachRightPrompt, workingIndicator } from "./right-prompt.js";
+import { styleFakeCursor } from "./fake-cursor.js";
 
-function installTranscript(getConfig: () => ReturnType<typeof configure>) {
+function installTranscript(getConfig: () => ReturnType<typeof configure>, colorText: (token: any, text: string) => string) {
   return patchTranscript([
     [UserMessageComponent, "user"],
     [AssistantMessageComponent, "assistant"],
     [ToolExecutionComponent, "tool"],
-  ], getConfig, { visibleWidth, Markdown, Text, getMarkdownTheme });
+  ], getConfig, { visibleWidth, Markdown, Text, getMarkdownTheme, colorText });
 }
 
 export default function(pi: ExtensionAPI) {
   let config = configure();
   let restore: (() => void) | undefined;
   let restoreBackgrounds: (() => void) | undefined;
+  let restoreTextColors: (() => void) | undefined;
   let restoreUpdates: (() => void) | undefined;
   let restorePending: (() => void) | undefined;
   let restoreStatus: (() => void) | undefined;
   let restoreSpacing: (() => void) | undefined;
+  let cursorControl: { setBusy: (busy: boolean) => void; restore: () => void } | undefined;
+  let applyCursor: (() => void) | undefined;
   let redraw: (() => void) | undefined;
   const usageClient = createUsageClient(pi, () => redraw?.());
   let gitBranch = "";
@@ -70,10 +76,17 @@ export default function(pi: ExtensionAPI) {
     try {
       restoreUpdates = patchUpdates(InteractiveMode, () => config, { Text, Markdown, visibleWidth, getMarkdownTheme });
     } catch (error) { ctx.ui.notify(`pish update styling: ${error}`, "warning"); }
-    try { await load(); restore = await installTranscript(() => config); }
+    restoreTextColors = patchTextColors(Theme, () => config);
+    try { await load(); restore = await installTranscript(() => config, (token, text) => ctx.ui.theme.fg(token, text)); }
     catch (error) { ctx.ui.notify(`pish: ${error}`, "warning"); }
     if (config.rightPrompt.includes("{usage_")) usageClient.start(ctx);
     ctx.ui.setEditorComponent((tui, theme, keys) => {
+      applyCursor = () => {
+        cursorControl?.restore();
+        cursorControl = configureCursor(tui, config);
+        cursorControl.setBusy(!ctx.isIdle());
+      };
+      applyCursor();
       // Animation must not force a full-screen redraw: it disrupts scrollback
       // and paging while the agent is running.
       redraw = () => tui.requestRender();
@@ -81,7 +94,7 @@ export default function(pi: ExtensionAPI) {
         render(width: number) {
           const indicator = workingIndicator(config, !ctx.isIdle(), Math.max(0, Date.now() - workingStarted));
           const marker = indicator || config.marker;
-          const prefix = paint(config.colors.input, marker) + " ";
+          const prefix = paint(config.marerColors.input, marker) + " ";
           const layout = promptLayout(width, visibleWidth(marker) + 1,
             rightPrompt(config, ctx, pi, gitBranch, getUsageStatus(), usageClient.values()), { visibleWidth, truncateToWidth }, this.getText());
           const available = layout.editorWidth;
@@ -91,8 +104,8 @@ export default function(pi: ExtensionAPI) {
           this.borderColor = () => "";
           try {
             const lines = super.render(available).filter(line => line !== "")
-              .map(line => prefix + line);
-            return [...attachRightPrompt(lines, layout.right, width, config.colors.right, visibleWidth), "", ""];
+              .map(line => prefix + styleFakeCursor(line, config));
+            return [...attachRightPrompt(lines, layout.right, width, config.marerColors.right, visibleWidth), "", ""];
           } finally { this.borderColor = borderColor; }
         }
       }
@@ -117,15 +130,29 @@ export default function(pi: ExtensionAPI) {
   pi.on("thinking_level_select", () => { redraw?.(); });
   pi.on("agent_start", (_, ctx) => {
     if (ctx.mode !== "tui") return;
+    cursorControl?.setBusy(true);
     startWorkingTimer(); redraw?.();
   });
-  pi.on("agent_settled", () => { stopWorkingTimer(); redraw?.(); });
+  pi.on("agent_settled", () => {
+    cursorControl?.setBusy(false);
+    stopWorkingTimer(); redraw?.();
+  });
   pi.on("turn_end", () => { redraw?.(); });
+  pi.registerCommand("pish-usage", {
+    description: "Refresh quota and show usage integration diagnostics",
+    handler: async (_, ctx) => {
+      if (ctx.mode !== "tui") return;
+      usageClient.start(ctx);
+      await usageClient.refresh();
+      ctx.ui.notify(JSON.stringify(usageClient.diagnostic(), null, 2), "info");
+    },
+  });
   pi.registerCommand("pish-reload", {
     description: "Reload pish.json appearance settings",
     handler: async (_, ctx) => {
       try {
         await load();
+        applyCursor?.();
         usageClient.stop();
         if (ctx.mode === "tui" && config.rightPrompt.includes("{usage_")) usageClient.start(ctx);
         redraw?.(); ctx.ui.notify("pish configuration reloaded", "info");
@@ -141,9 +168,12 @@ export default function(pi: ExtensionAPI) {
     getUsageStatus = () => "";
     restore?.(); restore = undefined;
     restoreBackgrounds?.(); restoreBackgrounds = undefined;
+    restoreTextColors?.(); restoreTextColors = undefined;
     restoreUpdates?.(); restoreUpdates = undefined;
     restorePending?.(); restorePending = undefined;
     restoreStatus?.(); restoreStatus = undefined;
     restoreSpacing?.(); restoreSpacing = undefined;
+    cursorControl?.restore(); cursorControl = undefined;
+    applyCursor = undefined;
   });
 }

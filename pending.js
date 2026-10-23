@@ -21,7 +21,7 @@ export function patchPendingMessages(InteractiveMode, getConfig, { Text, visible
           const config = getConfig();
           const available = width - visibleWidth(config.marker) - 1;
           if (available < 1) return [];
-          const marker = paint(config.colors.user, config.marker);
+          const marker = paint(config.marerColors.user, config.marker);
           return [...new Text(content, 0, 0).render(available).map(line => marker + ' ' + line), '', ''];
         },
       });

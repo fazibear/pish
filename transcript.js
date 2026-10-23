@@ -26,13 +26,13 @@ export function sections(source) {
   return result;
 }
 
-export function patchTranscript(targets, getConfig, { visibleWidth, Markdown, Text, getMarkdownTheme }) {
+export function patchTranscript(targets, getConfig, { visibleWidth, Markdown, Text, getMarkdownTheme, colorText = (_token, text) => text }) {
   const undo = [];
   function prefix(component, role, width) {
     const config = getConfig();
     const available = width - visibleWidth(config.marker) - 1;
     if (available < 1) return [];
-    const marker = paint(config.colors[role], config.marker);
+    const marker = paint(config.marerColors[role], config.marker);
     return component.render(available).map(line => marker + ' ' + line);
   }
   function markdown(source, role, instance, width, type, style) {
@@ -45,10 +45,13 @@ export function patchTranscript(targets, getConfig, { visibleWidth, Markdown, Te
     };
     const available = Math.max(1, width - visibleWidth(getConfig().marker) - 1);
     for (const section of sections(transform(source, available))) {
-      const component = new Markdown(section.text, 0, 0, instance.markdownTheme ?? getMarkdownTheme(), style, {
+      const component = new Markdown(section.text, 0, 0, instance.markdownTheme ?? getMarkdownTheme(), {
+        ...style,
+        color: text => colorText(type === 'user' ? 'userMessageText' : type === 'assistant-thinking' ? 'thinkingText' : 'text', text),
+      }, {
         preserveOrderedListMarkers: type === 'user', preserveBackslashEscapes: type === 'user',
       });
-      rows.push(...prefix(component, section.code ? 'code' : role, width));
+      rows.push(...prefix(component, type === 'assistant-thinking' ? 'thinking' : section.code ? 'code' : role, width));
     }
     return rows;
   }
@@ -68,7 +71,7 @@ export function patchTranscript(targets, getConfig, { visibleWidth, Markdown, Te
             if (block.type === 'text' && block.text.trim()) rows.push(...markdown(block.text, role, this, width, 'assistant'));
             if (block.type === 'thinking' && block.thinking.trim()) {
               if (this.hideThinkingBlock) {
-                if (!rows.length) rows.push(...prefix(new Text(this.hiddenThinkingLabel, 0, 0), role, width));
+                if (!rows.length) rows.push(...prefix(new Text(colorText('thinkingText', this.hiddenThinkingLabel), 0, 0), 'thinking', width));
               } else rows.push(...markdown(block.thinking, role, this, width, 'assistant-thinking', { italic: true }));
             }
           }
@@ -77,7 +80,7 @@ export function patchTranscript(targets, getConfig, { visibleWidth, Markdown, Te
           if (message.stopReason === 'length') error = 'Response was truncated before completion.';
           else if (!hasTools && message.stopReason === 'aborted') error = message.errorMessage || 'Operation aborted';
           else if (!hasTools && message.stopReason === 'error') error = message.errorMessage || 'Unknown error';
-          if (error) rows.push(...prefix(new Text(error, 0, 0), 'error', width));
+          if (error) rows.push(...prefix(new Text(colorText('error', error), 0, 0), 'error', width));
         } else {
           if (this.hideComponent) return [];
           const kind = this.result?.isError ? 'error' : 'tool';

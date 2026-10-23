@@ -21,8 +21,8 @@ test('steering, follow-up and hint get markers; empty queue disappears', () => {
   const mode = new Mode();
   mode.updatePendingMessagesDisplay();
   const rows = mode.blocks[0].render(80);
-  assert.equal(rows[0], paint(config.colors.user, '▌') + ' Steering: hello');
-  assert.ok(rows.slice(0, -2).every(row => row.startsWith(paint(config.colors.user, '▌'))));
+  assert.equal(rows[0], paint(config.marerColors.user, '▌') + ' Steering: hello');
+  assert.ok(rows.slice(0, -2).every(row => row.startsWith(paint(config.marerColors.user, '▌'))));
   assert.ok(rows.some(row => row.includes('Follow-up: later')));
   mode.queue = { steering: [], followUp: [] };
   mode.updatePendingMessagesDisplay();

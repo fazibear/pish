@@ -19,16 +19,17 @@ Create `~/.pi/agent/pish.json` (or set `PISH_CONFIG` to another file):
 ```json
 {
   "marker": "▌",
-  "colors": {
-    "user": "#87afff",
-    "assistant": "#87d7af",
-    "tool": "#d7af87",
-    "code": "#af87ff",
-    "error": "#ff5f5f",
-    "input": "#87afff",
+  "marerColors": {
+    "user": "#2456a6",
+    "assistant": "#27633b",
+    "thinking": "#505050",
+    "tool": "#663399",
+    "code": "#574080",
+    "error": "#a63333",
+    "input": "#2456a6",
     "right": "#808080"
   },
-  "rightPrompt": "{model} · {context_used}/{context_limit} ({context_percent_used}) · {cwd}"
+  "rightPrompt": "{model} · {thinking} · {context_used}/{context_limit} ({context_percent_used}) · {cwd}"
 }
 ```
 
@@ -36,6 +37,48 @@ The working indicator replaces the input marker while busy, instead of appearing
 in the right prompt or a separate row. Choose `"workingIndicator": "spinner"`
 (default), `"text"`, or `"none"`. For text mode set `"workingText": "working"`.
 The normal marker returns when idle. The indicator remains visible with long input.
+
+### Cursor
+
+```json
+{ "cursorShape": "bar", "cursorBlink": false, "fakeCursorAlways": false }
+```
+
+Shapes: `bar` (default), `block`, `underline`, or `default` (pi's normal cursor).
+Set `cursorBlink` to `true` for blinking.
+Set `fakeCursorAlways` to `true` to always use pish's fake underline cursor and
+keep hardware cursor hidden in both idle and working states. The current letter
+is preserved and underlined. At end of input an underlined space is used
+(`fakeCursorChar: " "`). The cursor inherits the surrounding text color without
+changing it. `fakeCursorEnabled` can disable custom fake-cursor styling.
+Requires terminal support. Changes apply with `/pish-reload`; shutdown restores
+the terminal's default cursor shape.
+
+### Text colors
+
+`marerColors` controls markers. `textColors` overrides pi foreground theme tokens:
+
+```json
+{
+  "textColors": {
+    "text": "#dddddd",
+    "userMessageText": "#87afff",
+    "thinkingText": "#808080",
+    "toolTitle": "#d7af87",
+    "toolOutput": "#cccccc",
+    "error": "#ff5f5f",
+    "warning": "#ffd787",
+    "customMessageText": "#dddddd",
+    "customMessageLabel": "#af87ff"
+  }
+}
+```
+
+Any pi foreground token can be overridden, including `mdCode`, `mdCodeBlock`,
+`syntaxKeyword`, `syntaxString`, and diff tokens. Omitted tokens inherit the active
+theme. Theme-level overrides also affect menus and other pi components using those
+tokens. Markdown and syntax-specific colors still take precedence over base text.
+Use `/pish-reload` to apply changes; bars remain independently configurable.
 
 All fields are optional. Colors use RGB hex. `/pish-reload` rereads settings.
 Set `rightPrompt` to `""` to hide it.

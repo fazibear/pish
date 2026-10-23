@@ -47,6 +47,7 @@ export function usageValues(result, now = Date.now()) {
 
 export function createUsageClient(pi, onChange) {
   let controller, timer, poll, result, context, generation = 0;
+  let lastOutcome = { status: 'unavailable', reason: 'not-started' };
   function cancel() {
     generation++;
     controller?.abort(); controller = undefined;
@@ -54,11 +55,12 @@ export function createUsageClient(pi, onChange) {
     result = undefined;
   }
   async function refresh() {
+    // Invalidate the old request before aborting it, so cancellation cannot
+    // erase a still-valid report while its replacement is being fetched.
+    const current = ++generation;
     controller?.abort(); clearTimeout(timer);
-    result = undefined; onChange();
     const ctx = context;
     if (!ctx?.model) return;
-    const current = ++generation;
     const session = ctx.sessionManager;
     const sessionId = session.getSessionId();
     const providerId = ctx.model.provider;
@@ -71,12 +73,17 @@ export function createUsageClient(pi, onChange) {
         done = true; clearTimeout(timer);
         abort.signal.removeEventListener('abort', cancelled);
         if (current === generation && session.getSessionId() === sessionId && ctx.model?.provider === providerId) {
-          result = value?.providerId === providerId ? value : undefined;
+          lastOutcome = value ?? { status: 'unavailable', reason: 'no-response' };
+          if (value?.providerId === providerId && value.status === 'ready') {
+            result = value;
+          } else if (result?.providerId !== providerId || !Number.isFinite(result?.expiresAt) || result.expiresAt <= Date.now()) {
+            result = undefined;
+          }
           onChange();
         }
         resolve();
       };
-      const cancelled = () => finish(undefined);
+      const cancelled = () => finish({ status: 'unavailable', reason: 'timeout-or-cancelled' });
       abort.signal.addEventListener('abort', cancelled, { once: true });
       timer = setTimeout(() => abort.abort(), 15000);
       try {
@@ -91,7 +98,7 @@ export function createUsageClient(pi, onChange) {
         });
       } catch { finish(undefined); }
       finally { open = false; }
-      if (!offered) finish(undefined);
+      if (!offered) finish({ status: 'unavailable', reason: 'no-service' });
     });
   }
   return {
@@ -102,6 +109,15 @@ export function createUsageClient(pi, onChange) {
       poll = setInterval(() => { void refresh(); }, 60000);
     },
     values() { return usageValues(result); },
+    diagnostic() {
+      return {
+        status: lastOutcome.status,
+        reason: lastOutcome.reason,
+        provider: lastOutcome.providerId,
+        expiresAt: result?.expiresAt,
+        fields: Object.keys(usageValues(result)),
+      };
+    },
     refresh,
     stop() { cancel(); context = undefined; },
   };

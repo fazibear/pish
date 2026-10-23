@@ -2,13 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { configure, template, paint } from '../config.js';
 test('defaults and partial overrides', () => {
-  const c = configure({ marker: '❯', colors: { user: '#112233' } });
+  const c = configure({ marker: '❯', marerColors: { user: '#112233' } });
   assert.equal(c.marker, '❯');
-  assert.equal(c.colors.user, '#112233');
-  assert.equal(c.colors.code, '#af87ff');
+  assert.equal(c.marerColors.user, '#112233');
+  assert.equal(c.marerColors.code, '#574080');
 });
 test('invalid config rejected', () => {
-  for (const c of [null, { marker: '\n' }, { colors: { code: 'red' } }, { rightPrompt: 2 }]) assert.throws(() => configure(c));
+  for (const c of [null, { marker: '\n' }, { marerColors: { code: 'red' } }, { rightPrompt: 2 }]) assert.throws(() => configure(c));
 });
 test('template values cannot inject terminal escapes', () => {
   assert.equal(template('{model} {unknown}', { model: '\x1bhello' }), 'hello ');

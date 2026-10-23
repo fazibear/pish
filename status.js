@@ -21,7 +21,7 @@ export function patchStatusMessages(InteractiveMode, getConfig, { Text, visibleW
             const config = getConfig();
             const available = width - visibleWidth(config.marker) - 1;
             if (available < 1) return [];
-            const marker = paint(config.colors.tool, config.marker);
+            const marker = paint(config.marerColors.tool, config.marker);
             return [...new Text(content, 0, 0).render(available).map(line => marker + ' ' + line), '', ''];
           },
         };
@@ -31,10 +31,43 @@ export function patchStatusMessages(InteractiveMode, getConfig, { Text, visibleW
       this.ui.requestRender();
     },
   });
+  const makeAlert = (level, markerColor, textColor, message) => ({
+    invalidate() {},
+    render(width) {
+      const config = getConfig();
+      const available = width - visibleWidth(config.marker) - 1;
+      if (available < 1) return [];
+      const marker = paint(config.marerColors[markerColor], config.marker);
+      const text = paint(config.textColors[textColor] ?? config.marerColors[markerColor], `${level}: ${message}`);
+      return [...new Text(text, 0, 0).render(available).map(line => marker + ' ' + line), '', ''];
+    },
+  });
+  const errorDescriptor = Object.getOwnPropertyDescriptor(proto, 'showError');
+  if (typeof errorDescriptor?.value === 'function') {
+    Object.defineProperty(proto, 'showError', {
+      ...errorDescriptor,
+      value(message) {
+        this.chatContainer.addChild(makeAlert('Error', 'error', 'error', message));
+        this.ui.requestRender();
+      },
+    });
+  }
+  const warningDescriptor = Object.getOwnPropertyDescriptor(proto, 'showWarning');
+  if (typeof warningDescriptor?.value === 'function') {
+    Object.defineProperty(proto, 'showWarning', {
+      ...warningDescriptor,
+      value(message) {
+        this.chatContainer.addChild(makeAlert('Warning', 'tool', 'warning', message));
+        this.ui.requestRender();
+      },
+    });
+  }
   let restored = false;
   return () => {
     if (restored) return;
     restored = true;
     Object.defineProperty(proto, 'showStatus', descriptor);
+    if (errorDescriptor) Object.defineProperty(proto, 'showError', errorDescriptor);
+    if (warningDescriptor) Object.defineProperty(proto, 'showWarning', warningDescriptor);
   };
 }

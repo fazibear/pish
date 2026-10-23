@@ -21,14 +21,14 @@ test('update notices use markers, spacing, live config and restore builders', ()
   mode.showNewVersionNotification({ version: '1.2.3', note: 'Release notes' });
   mode.showPackageUpdateNotification(['example']);
   const rows = mode.blocks[0].render(80);
-  assert.equal(rows[0], paint(config.colors.tool, '▌') + ' Update Available');
+  assert.equal(rows[0], paint(config.marerColors.tool, '▌') + ' Update Available');
   assert.ok(rows.some(row => row.includes('pi update')));
   assert.ok(rows.some(row => row.includes('Release notes')));
   assert.equal(rows.at(-1), '');
   assert.deepEqual(rows.slice(-2), ['', '']);
   assert.ok(mode.blocks[1].render(80).some(row => row.includes('- example')));
   config = configure({ marker: '>' });
-  assert.ok(mode.blocks[0].render(80)[0].startsWith(paint(config.colors.tool, '>')));
+  assert.ok(mode.blocks[0].render(80)[0].startsWith(paint(config.marerColors.tool, '>')));
   restore(); restore();
   assert.equal(Mode.prototype.showNewVersionNotification, original);
 });

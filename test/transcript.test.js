@@ -16,7 +16,7 @@ test('source fences support backticks, tildes and streaming', () => {
 test('user renderer reads source, not original rendered output', () => {
   class User { text = 'hello'; render() { throw Error('must not call original'); } }
   const restore = patchTranscript([[User, 'user']], () => config, deps);
-  assert.deepEqual(new User().render(80), [paint(config.colors.user, '▌') + ' hello', '', '']);
+  assert.deepEqual(new User().render(80), [paint(config.marerColors.user, '▌') + ' hello', '', '']);
   restore(); restore();
   assert.throws(() => new User().render());
 });
@@ -24,7 +24,7 @@ test('assistant code uses code color and omits tool-call-only messages', () => {
   class Assistant { lastMessage = { content: [{ type: 'text', text: '```js\nx\n```' }] }; render() {} }
   const restore = patchTranscript([[Assistant, 'assistant']], () => config, deps);
   const instance = new Assistant();
-  assert.equal(instance.render(80)[1], paint(config.colors.code, '▌') + ' x');
+  assert.equal(instance.render(80)[1], paint(config.marerColors.code, '▌') + ' x');
   instance.lastMessage = { content: [{ type: 'toolCall' }] };
   assert.deepEqual(instance.render(80), []);
   restore();
@@ -39,6 +39,6 @@ test('tools bypass box rendering and leave images untouched', () => {
     render() { throw Error('original'); }
   }
   const restore = patchTranscript([[Tool, 'tool']], () => config, deps);
-  assert.deepEqual(new Tool().render(80), [paint(config.colors.error, '▌') + ' failure', 'native-image', '', '']);
+  assert.deepEqual(new Tool().render(80), [paint(config.marerColors.error, '▌') + ' failure', 'native-image', '', '']);
   restore();
 });
