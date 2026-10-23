@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { CustomEditor, UserMessageComponent, AssistantMessageComponent, ToolExecutionComponent, getMarkdownTheme, Theme, InteractiveMode, CONFIG_DIR_NAME } from "@earendil-works/pi-coding-agent";
-import { Markdown, Text, visibleWidth, truncateToWidth } from "@earendil-works/pi-tui";
+import { Markdown, Text, Spacer, visibleWidth, truncateToWidth } from "@earendil-works/pi-tui";
 import { configure, paint } from "./config.js";
 import { createDefaultConfig } from "./config-file.js";
 
@@ -11,7 +11,7 @@ import { disableBackgrounds } from "./background.js";
 import { patchUpdates } from "./updates.js";
 import { patchPendingMessages } from "./pending.js";
 import { patchStatusMessages } from "./status.js";
-import { patchWidgetSpacing } from "./spacing.js";
+import { patchWidgetSpacing, patchUserMessageSpacing } from "./spacing.js";
 import { createUsageClient } from "./usage.js";
 import { patchTextColors } from "./text-colors.js";
 import { configureCursor } from "./cursor.js";
@@ -35,6 +35,7 @@ export default function(pi) {
   let restorePending;
   let restoreStatus;
   let restoreSpacing;
+  let restoreUserSpacing;
   let cursorControl;
   let applyCursor;
   let redraw;
@@ -64,6 +65,7 @@ export default function(pi) {
     if (ctx.mode !== "tui") return;
     try {
       restoreSpacing = patchWidgetSpacing(InteractiveMode);
+      restoreUserSpacing = patchUserMessageSpacing(InteractiveMode, Spacer);
       ctx.ui.setWidget("pish-spacing", undefined);
     } catch (error) { ctx.ui.notify(`pish spacing: ${error}`, "warning"); }
     try {
@@ -191,6 +193,7 @@ export default function(pi) {
     restorePending?.(); restorePending = undefined;
     restoreStatus?.(); restoreStatus = undefined;
     restoreSpacing?.(); restoreSpacing = undefined;
+    restoreUserSpacing?.(); restoreUserSpacing = undefined;
     cursorControl?.restore(); cursorControl = undefined;
     applyCursor = undefined;
   });

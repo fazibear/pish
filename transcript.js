@@ -67,13 +67,19 @@ export function patchTranscript(targets, getConfig, { visibleWidth, Markdown, Te
         } else if (role === 'assistant') {
           const message = this.lastMessage;
           if (!message) return [];
+          let previousBlockType;
           for (const block of message.content) {
+            const visible = (block.type === 'text' && block.text.trim()) || (block.type === 'thinking' && block.thinking.trim());
+            if (visible && previousBlockType === 'thinking' && block.type === 'text' && rows.length) {
+              rows.push('', '');
+            }
             if (block.type === 'text' && block.text.trim()) rows.push(...markdown(block.text, role, this, width, 'assistant'));
             if (block.type === 'thinking' && block.thinking.trim()) {
               if (this.hideThinkingBlock) {
                 if (!rows.length) rows.push(...prefix(new Text(colorText('thinkingText', this.hiddenThinkingLabel), 0, 0), 'thinking', width));
               } else rows.push(...markdown(block.thinking, role, this, width, 'assistant-thinking', { italic: true }));
             }
+            if (visible) previousBlockType = block.type;
           }
           const hasTools = message.content.some(block => block.type === 'toolCall');
           let error;

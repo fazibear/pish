@@ -29,6 +29,23 @@ test('assistant code uses code color and omits tool-call-only messages', () => {
   assert.deepEqual(instance.render(80), []);
   restore();
 });
+test('thinking and answer are separated by two empty lines', () => {
+  class Assistant {
+    lastMessage = { content: [{ type: 'thinking', thinking: 'Thinking' }, { type: 'text', text: 'Answer' }] };
+    render() {}
+  }
+  const restore = patchTranscript([[Assistant, 'assistant']], () => config, deps);
+  try {
+    const rows = new Assistant().render(80);
+    assert.deepEqual(rows.slice(1, 3), ['', '']);
+    assert.ok(rows[0].includes('Thinking'));
+    assert.ok(rows[3].includes('Answer'));
+    const hidden = new Assistant();
+    hidden.hideThinkingBlock = true;
+    hidden.hiddenThinkingLabel = 'Thinking…';
+    assert.deepEqual(hidden.render(80).slice(1, 3), ['', '']);
+  } finally { restore(); }
+});
 test('tools bypass box rendering and leave images untouched', () => {
   class Tool {
     result = { isError: true };
