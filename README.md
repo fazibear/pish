@@ -54,8 +54,7 @@ A small configuration to start with:
     "input": "#2456a6",
     "right": "#808080"
   },
-  "rightPrompt": "{model} · {thinking} · {context_percent_used} · {dir}",
-  "workingIndicator": "spinner"
+  "rightPrompt": "{model} · {thinking} · {context_percent_used} · {dir}"
 }
 ```
 
@@ -101,14 +100,48 @@ While the agent is busy, the input marker becomes a spinner. It returns to the
 normal marker when idle and remains visible even when long input hides the right
 prompt.
 
+Set the entire animation sequence with `workingFrames`.
+Each Unicode character is one frame, played in order every 100 ms and looped.
+For a thin bar bouncing left ↔ right:
+
 ```json
 {
-  "workingIndicator": "text",
-  "workingText": "working"
+  "workingFrames": "▏🭰🭱🭲🭳🭴🭵▕🭵🭴🭳🭲🭱🭰"
 }
 ```
 
-`workingIndicator` accepts `spinner` (default), `text`, or `none`.
+The default is `"▌▋▊▉█▉▊▋▌▍▎▏▎▍"`. Avoid repeating the first frame at the end
+unless you want a pause at the loop boundary. Newer Unicode block glyphs require
+font support. Multi-code-point emoji sequences are not supported as single frames.
+Apply changes with `/pish-reload`.
+
+#### Animation examples
+
+Copy any sequence below into `workingFrames`. Each starts and ends with the
+idle `▌` marker; the repeated endpoints add a short resting beat between loops.
+
+| Animation | `workingFrames` |
+| --- | --- |
+| Smooth pulse | `▌▋▊▉█▉▊▋▌▍▎▏▎▍▌` |
+| Double heartbeat | `▌▋█▋▌▌▋█▋▌▍▎▍▌` |
+| Shimmer | `▌▐▌▐░▒▓█▓▒░▐▌` |
+| Slow breathing | `▌▌▋▋▊▊▉▉██▉▉▊▊▋▋▌▌▍▍▎▎▏▏▎▎▍▍▌` |
+| Spark | `▌▍▎▏·✧✦✧·▏▎▍▌` |
+| Scan | `▌▐▌▐▌▐█▐▌▐▌` |
+| Travel and return¹ | `▌▍▎▏🭰🭱🭲🭳🭴🭵▕🭵🭴🭳🭲🭱🭰▏▎▍▌` |
+| Sweep and reverse¹ | `▌▋▊▉█🮋🮊🮉▐🮈🮇▕🮇🮈▐🮉🮊🮋█▉▊▋▌` |
+
+¹ Requires a font supporting newer Unicode block glyphs.
+
+For example, to use the double heartbeat:
+
+```json
+{
+  "workingFrames": "▌▋█▋▌▌▋█▋▌▍▎▍▌"
+}
+```
+
+Use `"workingFrames": "▌"` for a static marker while busy.
 
 ### Cursor
 
@@ -117,9 +150,7 @@ prompt.
   "cursorShape": "bar",
   "cursorBlink": false,
   "fakeCursorEnabled": true,
-  "fakeCursorAlways": false,
-  "fakeCursorChar": " ",
-  "fakeCursorColor": "#808080"
+  "fakeCursorAlways": false
 }
 ```
 
@@ -127,7 +158,7 @@ prompt.
 - `cursorBlink`: enable hardware cursor blinking.
 - `fakeCursorEnabled`: enable pish's custom fake-cursor styling.
 - `fakeCursorAlways`: hide the hardware cursor and use the fake underline cursor in both idle and working states.
-- `fakeCursorChar`: character used at the end of input; within text, the current character is preserved.
+The fake cursor underlines the current character, or a space at the end of input.
 
 Cursor behavior depends on terminal support. Apply changes with `/pish-reload`;
 shutdown restores the terminal's default cursor shape.

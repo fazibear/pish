@@ -1,6 +1,7 @@
 import { paint } from './config.js';
 import { styleFakeCursor } from './fake-cursor.js';
-import { attachRightPrompt, promptLayout, rightPrompt, workingIndicator } from './right-prompt.js';
+import { attachRightPrompt, promptLayout, rightPrompt } from './right-prompt.js';
+import { workingIndicator } from './working-indicator.js';
 
 export function createShellEditor(
   BaseEditor,

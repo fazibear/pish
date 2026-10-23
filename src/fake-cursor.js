@@ -19,14 +19,14 @@ export function styleFakeCursor(line, config, hardwareCursorVisible = false) {
     const end = line.indexOf(FAKE_END, contentStart);
     const cursorText =
       end >= 0 ? line.slice(contentStart, end) : line.slice(contentStart, contentStart + 1);
-    const glyph = cursorText && cursorText !== ' ' ? cursorText : config.fakeCursorChar;
+    const glyph = cursorText || ' ';
     const rendered = `\x1b[4m${glyph}\x1b[24m`;
     const tail = end >= 0 ? line.slice(end + FAKE_END.length) : '';
     return line.slice(0, markerStart) + marker + rendered + tail;
   }
   // Fallback if a future pi version resolves fake cursor earlier.
   return line.replace(/\x1b\[[0-9;]*7[0-9;]*m([\s\S])\x1b\[[0-9;]*27[0-9;]*m/, (_all, char) => {
-    const glyph = char && char !== ' ' ? char : config.fakeCursorChar;
+    const glyph = char || ' ';
     return `\x1b[4m${glyph}\x1b[24m`;
   });
 }

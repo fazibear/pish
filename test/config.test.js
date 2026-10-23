@@ -23,14 +23,10 @@ test('configuration validation preserves field-specific errors', () => {
     [{ cursorBlink: 1 }, 'cursorBlink must be boolean'],
     [{ fakeCursorEnabled: null }, 'fakeCursorEnabled must be boolean'],
     [{ fakeCursorAlways: 'yes' }, 'fakeCursorAlways must be boolean'],
-    [{ fakeCursorChar: '' }, 'fakeCursorChar must be 1–8 printable characters'],
-    [{ fakeCursorColor: '#fff' }, 'fakeCursorColor must use #rrggbb'],
     [{ textColors: [] }, 'textColors must be an object'],
     [{ textColors: { text: 'red' } }, 'textColors must use #rrggbb'],
     [{ marker: '123456789' }, 'marker must be 1–8 printable characters'],
     [{ rightPrompt: '\n' }, 'rightPrompt must be a single printable line'],
-    [{ workingIndicator: 'dots' }, 'workingIndicator must be spinner, text, or none'],
-    [{ workingText: '\t' }, 'workingText must be a single printable line'],
     [{ marerColors: { user: false } }, 'Colors must use #rrggbb'],
   ]) {
     assert.throws(() => configure(value), { message });
@@ -38,8 +34,7 @@ test('configuration validation preserves field-specific errors', () => {
 });
 
 test('empty prompt lines and mixed-case RGB colors remain valid', () => {
-  const config = configure({ rightPrompt: '', workingText: '', textColors: { text: '#aAbBcC' } });
+  const config = configure({ rightPrompt: '', textColors: { text: '#aAbBcC' } });
   assert.equal(config.rightPrompt, '');
-  assert.equal(config.workingText, '');
   assert.equal(config.textColors.text, '#aAbBcC');
 });

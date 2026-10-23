@@ -7,8 +7,6 @@ export const defaults = {
   cursorBlink: false,
   fakeCursorEnabled: true,
   fakeCursorAlways: false,
-  fakeCursorChar: ' ',
-  fakeCursorColor: '#808080',
   marerColors: {
     user: '#2456a6',
     assistant: '#27633b',
@@ -22,8 +20,7 @@ export const defaults = {
   rightPrompt:
     '{model} · {thinking} · {context_used}/{context_limit} ({context_percent_used}) · {cwd}',
   textColors: {},
-  workingIndicator: 'spinner',
-  workingText: 'working',
+  workingFrames: '▌▋▊▉█▉▊▋▌▍▎▏▎▍',
 };
 
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -50,17 +47,14 @@ export function configure(value = {}) {
   for (const key of ['cursorBlink', 'fakeCursorEnabled', 'fakeCursorAlways']) {
     requireValid(typeof result[key] === 'boolean', `${key} must be boolean`);
   }
-  requireValid(isMarker(result.fakeCursorChar), 'fakeCursorChar must be 1–8 printable characters');
-  requireValid(isColor(result.fakeCursorColor), 'fakeCursorColor must use #rrggbb');
   requireValid(isObject(result.textColors), 'textColors must be an object');
   requireValid(Object.values(result.textColors).every(isColor), 'textColors must use #rrggbb');
   requireValid(isMarker(result.marker), 'marker must be 1–8 printable characters');
   requireValid(isPrintableLine(result.rightPrompt), 'rightPrompt must be a single printable line');
   requireValid(
-    ['spinner', 'text', 'none'].includes(result.workingIndicator),
-    'workingIndicator must be spinner, text, or none',
+    isPrintableLine(result.workingFrames) && result.workingFrames.length > 0,
+    'workingFrames must be a non-empty printable string',
   );
-  requireValid(isPrintableLine(result.workingText), 'workingText must be a single printable line');
   requireValid(Object.values(result.marerColors).every(isColor), 'Colors must use #rrggbb');
   return result;
 }

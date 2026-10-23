@@ -67,7 +67,7 @@ export default function (pi) {
     stopWorkingTimer();
     workingStarted = Date.now();
     workingTimer = setInterval(() => {
-      if (config.workingIndicator === 'spinner') redraw?.();
+      redraw?.();
     }, 100);
   }
   const configPath = () =>

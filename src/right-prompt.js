@@ -1,29 +1,5 @@
 import { paint, template } from './config.js';
 
-export function workingIndicator(config, busy, now = Date.now()) {
-  if (!busy || config.workingIndicator === 'none') return '';
-  if (config.workingIndicator === 'text') return config.workingText;
-  // Each cycle starts and ends at the configured idle marker.
-  const frames = [
-    config.marker,
-    '▋',
-    '▊',
-    '▉',
-    '█',
-    '▉',
-    '▊',
-    '▋',
-    '▌',
-    '▍',
-    '▎',
-    '▏',
-    '▎',
-    '▍',
-    config.marker,
-  ];
-  return frames[Math.floor(now / 100) % frames.length];
-}
-
 export function rightPrompt(config, ctx, pi, branch = '', usageStatus = '', usageFields = {}) {
   const usage = ctx.getContextUsage();
   const limit = ctx.model?.contextWindow;

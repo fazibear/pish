@@ -16,7 +16,6 @@ test('cursor preserves and underlines the current letter', () => {
   );
 });
 test('cursor displays an underlined space at end of input', () => {
-  assert.equal(config.fakeCursorChar, ' ');
   assert.equal(
     styleFakeCursor(`hello${marker}${start} ${end}`, config),
     `hello${marker}${underlined(' ')}`,

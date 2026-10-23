@@ -1,21 +1,12 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { configure } from '../src/config.js';
-import {
-  attachRightPrompt,
-  promptLayout,
-  rightPrompt,
-  workingIndicator,
-} from '../src/right-prompt.js';
+import { attachRightPrompt, promptLayout, rightPrompt } from '../src/right-prompt.js';
+import { workingIndicator } from '../src/working-indicator.js';
 
 const utils = { visibleWidth: (s) => s.length, truncateToWidth: (s, n) => s.slice(0, n) };
-test('working indicator supports text, animation, none and idle', () => {
+test('working indicator animates only while busy', () => {
   assert.equal(workingIndicator(configure(), false, 0), '');
-  assert.equal(
-    workingIndicator(configure({ workingIndicator: 'text', workingText: 'thinking' }), true),
-    'thinking',
-  );
-  assert.equal(workingIndicator(configure({ workingIndicator: 'none' }), true), '');
   assert.notEqual(workingIndicator(configure(), true, 0), workingIndicator(configure(), true, 100));
   assert.equal(workingIndicator(configure(), true, 0), '▌');
   assert.equal(workingIndicator(configure(), true, 1400), '▌');
@@ -23,6 +14,16 @@ test('working indicator supports text, animation, none and idle', () => {
   assert.equal(workingIndicator(configure(), true, 500), '▉');
   assert.equal(workingIndicator(configure(), true, 1100), '▏');
 });
+test('default spinner has no repeated frames, including its loop boundary', () => {
+  const config = configure();
+  for (let elapsed = 0; elapsed < 2800; elapsed += 100) {
+    assert.notEqual(
+      workingIndicator(config, true, elapsed),
+      workingIndicator(config, true, elapsed + 100),
+    );
+  }
+});
+
 test('working indicator is not included in the right prompt', () => {
   const ctx = {
     model: { id: 'model' },
@@ -31,7 +32,7 @@ test('working indicator is not included in the right prompt', () => {
     isIdle: () => false,
   };
   const pi = { getThinkingLevel: () => 'off' };
-  const config = configure({ rightPrompt: '{model}', workingIndicator: 'text' });
+  const config = configure({ rightPrompt: '{model}' });
   assert.equal(rightPrompt(config, ctx, pi), 'model');
   assert.equal(rightPrompt({ ...config, rightPrompt: '{working}{model}' }, ctx, pi), 'model');
 });
