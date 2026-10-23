@@ -18,7 +18,12 @@ pi -e git:github.com/fazibear/pish
 
 ## Configure
 
-Create `~/.pi/agent/pish.json` (or set `PISH_CONFIG` to another file):
+Run `/pish-init` to create `~/.pi/agent/pish.json` with all current defaults.
+It creates missing directories and never overwrites an existing file. `textColors`
+is empty by default, inheriting the active pi theme. Set `PISH_CONFIG` to use
+another file; both `/pish-init` and `/pish-reload` respect it.
+
+Or create the file manually:
 
 ```json
 {

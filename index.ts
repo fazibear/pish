@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { CustomEditor, UserMessageComponent, AssistantMessageComponent, ToolExecutionComponent, getMarkdownTheme, Theme, InteractiveMode, CONFIG_DIR_NAME, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Markdown, Text, visibleWidth, truncateToWidth } from "@earendil-works/pi-tui";
 import { configure, paint } from "./config.js";
+import { createDefaultConfig } from "./config-file.js";
 
 import { patchTranscript } from "./transcript.js";
 import { disableBackgrounds } from "./background.js";
@@ -53,8 +54,9 @@ export default function(pi: ExtensionAPI) {
       if (config.workingIndicator === "spinner") redraw?.();
     }, 100);
   }
+  const configPath = () => process.env.PISH_CONFIG || join(homedir(), CONFIG_DIR_NAME, "agent", "pish.json");
   async function load() {
-    const path = process.env.PISH_CONFIG || join(homedir(), CONFIG_DIR_NAME, "agent", "pish.json");
+    const path = configPath();
     try { config = configure(JSON.parse(await readFile(path, "utf8"))); }
     catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; config = configure(); }
   }
@@ -145,6 +147,22 @@ export default function(pi: ExtensionAPI) {
       usageClient.start(ctx);
       await usageClient.refresh();
       ctx.ui.notify(JSON.stringify(usageClient.diagnostic(), null, 2), "info");
+    },
+  });
+  pi.registerCommand("pish-init", {
+    description: "Create pish.json with all defaults without overwriting existing config",
+    handler: async (_, ctx) => {
+      const path = configPath();
+      try {
+        if (!await createDefaultConfig(path)) {
+          ctx.ui.notify(`Config already exists; left unchanged: ${path}`, "info");
+          return;
+        }
+        await load();
+        applyCursor?.();
+        redraw?.();
+        ctx.ui.notify(`Created default configuration: ${path}`, "info");
+      } catch (error) { ctx.ui.notify(`pish: ${error}`, "error"); }
     },
   });
   pi.registerCommand("pish-reload", {
