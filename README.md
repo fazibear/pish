@@ -7,10 +7,14 @@ Keeps pi's Markdown, syntax highlighting, tool expansion, and editor shortcuts.
 ## Install
 
 ```sh
-pi install /Users/fazibear/dev/pish
+pi install git:github.com/fazibear/pish
 ```
 
-Then `/reload`. Or try without installation: `pi -e ./index.ts`.
+Then restart pi. To try without installing:
+
+```sh
+pi -e git:github.com/fazibear/pish
+```
 
 ## Configure
 
