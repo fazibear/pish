@@ -4,8 +4,10 @@ const CURSOR_MARKER = "\x1b_pi:c\x07";
 const FAKE_START = "\x1b_pi:fc\x07";
 const FAKE_END = "\x1b_pi:/fc\x07";
 
-export function styleFakeCursor(line, config) {
-  if (!config.fakeCursorEnabled) return line;
+export function styleFakeCursor(line, config, hardwareCursorVisible = false) {
+  // Keep pi's markers intact in hardware mode so its renderer can suppress
+  // the fake cursor. Replacing them early would display a second cursor.
+  if (hardwareCursorVisible || !config.fakeCursorEnabled) return line;
   const start = line.indexOf(FAKE_START);
   if (start >= 0) {
     const markerStart = line.slice(Math.max(0, start - CURSOR_MARKER.length), start) === CURSOR_MARKER

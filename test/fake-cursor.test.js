@@ -29,6 +29,11 @@ test('cursor keeps the surrounding text color unchanged', () => {
   const line = `\x1b[38;2;1;2;3m${marker}${start}X${end}next`;
   assert.equal(styleFakeCursor(line, config), `\x1b[38;2;1;2;3m${marker}${underlined('X')}next`);
 });
+test('hardware cursor mode leaves markers intact to avoid double cursors', () => {
+  const line = `a${marker}${start}X${end}b`;
+  assert.equal(styleFakeCursor(line, config, true), line);
+  assert.equal(styleFakeCursor(line, config, false), `a${marker}${underlined('X')}b`);
+});
 test('fake cursor styling can be disabled', () => {
   const line = `a${marker}${start}X${end}b`;
   assert.equal(styleFakeCursor(line, configure({ fakeCursorEnabled: false })), line);

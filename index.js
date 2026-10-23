@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { CustomEditor, UserMessageComponent, AssistantMessageComponent, ToolExecutionComponent, getMarkdownTheme, Theme, InteractiveMode, CONFIG_DIR_NAME, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { CustomEditor, UserMessageComponent, AssistantMessageComponent, ToolExecutionComponent, getMarkdownTheme, Theme, InteractiveMode, CONFIG_DIR_NAME } from "@earendil-works/pi-coding-agent";
 import { Markdown, Text, visibleWidth, truncateToWidth } from "@earendil-works/pi-tui";
 import { configure, paint } from "./config.js";
 import { createDefaultConfig } from "./config-file.js";
@@ -18,7 +18,7 @@ import { configureCursor } from "./cursor.js";
 import { rightPrompt, promptLayout, attachRightPrompt, workingIndicator } from "./right-prompt.js";
 import { styleFakeCursor } from "./fake-cursor.js";
 
-function installTranscript(getConfig: () => ReturnType<typeof configure>, colorText: (token: any, text: string) => string) {
+function installTranscript(getConfig, colorText) {
   return patchTranscript([
     [UserMessageComponent, "user"],
     [AssistantMessageComponent, "assistant"],
@@ -26,22 +26,22 @@ function installTranscript(getConfig: () => ReturnType<typeof configure>, colorT
   ], getConfig, { visibleWidth, Markdown, Text, getMarkdownTheme, colorText });
 }
 
-export default function(pi: ExtensionAPI) {
+export default function(pi) {
   let config = configure();
-  let restore: (() => void) | undefined;
-  let restoreBackgrounds: (() => void) | undefined;
-  let restoreTextColors: (() => void) | undefined;
-  let restoreUpdates: (() => void) | undefined;
-  let restorePending: (() => void) | undefined;
-  let restoreStatus: (() => void) | undefined;
-  let restoreSpacing: (() => void) | undefined;
-  let cursorControl: { setBusy: (busy: boolean) => void; restore: () => void } | undefined;
-  let applyCursor: (() => void) | undefined;
-  let redraw: (() => void) | undefined;
+  let restore;
+  let restoreBackgrounds;
+  let restoreTextColors;
+  let restoreUpdates;
+  let restorePending;
+  let restoreStatus;
+  let restoreSpacing;
+  let cursorControl;
+  let applyCursor;
+  let redraw;
   const usageClient = createUsageClient(pi, () => redraw?.());
   let gitBranch = "";
   let getUsageStatus = () => "";
-  let workingTimer: ReturnType<typeof setInterval> | undefined;
+  let workingTimer;
   let workingStarted = 0;
   function stopWorkingTimer() {
     if (workingTimer) clearInterval(workingTimer);
@@ -58,7 +58,7 @@ export default function(pi: ExtensionAPI) {
   async function load() {
     const path = configPath();
     try { config = configure(JSON.parse(await readFile(path, "utf8"))); }
-    catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; config = configure(); }
+    catch (error) { if (error.code !== "ENOENT") throw error; config = configure(); }
   }
   pi.on("session_start", async (_, ctx) => {
     if (ctx.mode !== "tui") return;
@@ -93,7 +93,7 @@ export default function(pi: ExtensionAPI) {
       // and paging while the agent is running.
       redraw = () => tui.requestRender();
       class ShellEditor extends CustomEditor {
-        render(width: number) {
+        render(width) {
           const indicator = workingIndicator(config, !ctx.isIdle(), Math.max(0, Date.now() - workingStarted));
           const marker = indicator || config.marker;
           const prefix = paint(config.marerColors.input, marker) + " ";
@@ -106,7 +106,7 @@ export default function(pi: ExtensionAPI) {
           this.borderColor = () => "";
           try {
             const lines = super.render(available).filter(line => line !== "")
-              .map(line => prefix + styleFakeCursor(line, config));
+              .map(line => prefix + styleFakeCursor(line, config, tui.getShowHardwareCursor()));
             return [...attachRightPrompt(lines, layout.right, width, config.marerColors.right, visibleWidth), "", ""];
           } finally { this.borderColor = borderColor; }
         }
