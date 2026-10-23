@@ -1,82 +1,60 @@
-// Read-only pi-usage v1 client. No dependency on the other extension's internals.
-export function formatReset(timestamp, now = Date.now()) {
-  if (!Number.isFinite(timestamp) || Math.abs(timestamp) > 8640000000000000) return '?';
-  const minutes = Math.ceil(Math.max(0, timestamp - now) / 60000);
-  if (!minutes) return 'now';
-  const days = Math.floor(minutes / 1440);
-  const hours = Math.floor(minutes / 60) % 24;
-  const mins = minutes % 60;
-  if (days) return `${days}d${hours ? ` ${hours}h` : ''}`;
-  if (hours) return `${hours}h${mins ? ` ${mins}m` : ''}`;
-  return `${mins}m`;
-}
+import { usageValues } from './usage-values.js';
 
-export function usageValues(result, now = Date.now()) {
-  if (result?.status !== 'ready' || !Number.isFinite(result.expiresAt) || result.expiresAt <= now) return {};
-  const report = result.report;
-  if (!report || report.providerId !== result.providerId || !Array.isArray(report.buckets)) return {};
-  const values = { usage_provider: report.providerName ?? report.providerId };
-  const number = value => Number.isFinite(value) ? String(Math.round(value * 10) / 10) : '?';
-  for (const bucket of report.buckets) {
-    if (!bucket || typeof bucket.id !== 'string') continue;
-    const keys = [bucket.id.toLowerCase().replace(/[^a-z0-9_]/g, '_')];
-    if (Number.isFinite(bucket.windowMinutes) && bucket.windowMinutes > 0) {
-      const minutes = bucket.windowMinutes;
-      keys.push(minutes % 1440 === 0 ? `${minutes / 1440}d` : minutes % 60 === 0 ? `${minutes / 60}h` : `${minutes}m`);
-    }
-    // Percent fields are only meaningful for percent quotas or known limits.
-    const percentUsed = bucket.unit === 'percent' ? bucket.used : Number.isFinite(bucket.limit) && bucket.limit > 0 && Number.isFinite(bucket.used) ? bucket.used / bucket.limit * 100 : undefined;
-    const percentLeft = bucket.unit === 'percent' && Number.isFinite(bucket.remaining) ? bucket.remaining : Number.isFinite(percentUsed) ? Math.max(0, 100 - percentUsed) : undefined;
-    for (const key of new Set(keys)) {
-      const prefix = `usage_${key}_`;
-      Object.assign(values, {
-        [prefix + 'label']: bucket.label ?? bucket.id,
-        [prefix + 'used']: number(bucket.used),
-        [prefix + 'left']: number(bucket.remaining),
-        [prefix + 'limit']: number(bucket.limit),
-        [prefix + 'unit']: bucket.unit ?? '',
-        [prefix + 'percent_used']: Number.isFinite(percentUsed) ? number(percentUsed) + '%' : '?',
-        [prefix + 'percent_left']: Number.isFinite(percentLeft) ? number(percentLeft) + '%' : '?',
-        [prefix + 'reset']: formatReset(bucket.resetsAt, now),
-        [prefix + 'reset_at']: Number.isFinite(bucket.resetsAt) && Math.abs(bucket.resetsAt) <= 8640000000000000 ? new Date(bucket.resetsAt).toISOString() : '?',
-      });
-    }
-  }
-  return values;
-}
+export { formatReset, usageValues } from './usage-values.js';
+
+// Read-only pi-usage v1 client. No dependency on the other extension's internals.
 
 export function createUsageClient(pi, onChange) {
-  let controller, timer, poll, result, context, generation = 0;
+  let controller;
+  let timer;
+  let poll;
+  let result;
+  let context;
+  let generation = 0;
   let lastOutcome = { status: 'unavailable', reason: 'not-started' };
   function cancel() {
     generation++;
-    controller?.abort(); controller = undefined;
-    clearTimeout(timer); clearInterval(poll);
+    controller?.abort();
+    controller = undefined;
+    clearTimeout(timer);
+    clearInterval(poll);
     result = undefined;
   }
   async function refresh() {
     // Invalidate the old request before aborting it, so cancellation cannot
     // erase a still-valid report while its replacement is being fetched.
     const current = ++generation;
-    controller?.abort(); clearTimeout(timer);
+    controller?.abort();
+    clearTimeout(timer);
     const ctx = context;
     if (!ctx?.model) return;
     const session = ctx.sessionManager;
     const sessionId = session.getSessionId();
     const providerId = ctx.model.provider;
-    const abort = new AbortController(); controller = abort;
-    let open = true, offered = false;
-    await new Promise(resolve => {
+    const abort = new AbortController();
+    controller = abort;
+    let open = true;
+    let offered = false;
+    await new Promise((resolve) => {
       let done = false;
-      const finish = value => {
+      const finish = (value) => {
         if (done) return;
-        done = true; clearTimeout(timer);
+        done = true;
+        clearTimeout(timer);
         abort.signal.removeEventListener('abort', cancelled);
-        if (current === generation && session.getSessionId() === sessionId && ctx.model?.provider === providerId) {
+        if (
+          current === generation &&
+          session.getSessionId() === sessionId &&
+          ctx.model?.provider === providerId
+        ) {
           lastOutcome = value ?? { status: 'unavailable', reason: 'no-response' };
           if (value?.providerId === providerId && value.status === 'ready') {
             result = value;
-          } else if (result?.providerId !== providerId || !Number.isFinite(result?.expiresAt) || result.expiresAt <= Date.now()) {
+          } else if (
+            result?.providerId !== providerId ||
+            !Number.isFinite(result?.expiresAt) ||
+            result.expiresAt <= Date.now()
+          ) {
             result = undefined;
           }
           onChange();
@@ -88,27 +66,48 @@ export function createUsageClient(pi, onChange) {
       timer = setTimeout(() => abort.abort(), 15000);
       try {
         pi.events.emit('usage:query:v1', {
-          session, sessionId, providerId, refresh: true, signal: abort.signal,
+          session,
+          sessionId,
+          providerId,
+          refresh: true,
+          signal: abort.signal,
           respond(value) {
             const accepted = open && !offered && !done;
             if (accepted) offered = true;
-            void Promise.resolve(value).then(value => { if (accepted) finish(value); }, () => { if (accepted) finish(undefined); });
+            void Promise.resolve(value).then(
+              (value) => {
+                if (accepted) finish(value);
+              },
+              () => {
+                if (accepted) finish(undefined);
+              },
+            );
             return accepted;
           },
         });
-      } catch { finish(undefined); }
-      finally { open = false; }
+      } catch {
+        finish(undefined);
+      } finally {
+        open = false;
+      }
       if (!offered) finish({ status: 'unavailable', reason: 'no-service' });
     });
   }
   return {
     start(ctx) {
-      cancel(); context = ctx;
+      cancel();
+      context = ctx;
       // Defer so all extensions finish their session_start initialization.
-      timer = setTimeout(() => { void refresh(); }, 0);
-      poll = setInterval(() => { void refresh(); }, 60000);
+      timer = setTimeout(() => {
+        void refresh();
+      }, 0);
+      poll = setInterval(() => {
+        void refresh();
+      }, 60000);
     },
-    values() { return usageValues(result); },
+    values() {
+      return usageValues(result);
+    },
     diagnostic() {
       return {
         status: lastOutcome.status,
@@ -119,6 +118,9 @@ export function createUsageClient(pi, onChange) {
       };
     },
     refresh,
-    stop() { cancel(); context = undefined; },
+    stop() {
+      cancel();
+      context = undefined;
+    },
   };
 }

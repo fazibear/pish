@@ -3,8 +3,27 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Shell-inspired prompt UI for pi",
-  "keywords": ["pi-package"],
-  "pi": { "extensions": ["./src/index.js"] },
-  "peerDependencies": { "@earendil-works/pi-coding-agent": "*", "@earendil-works/pi-tui": "*" },
-  "scripts": { "test": "node --test test/*.test.js" }
+  "keywords": [
+    "pi-package"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/index.js"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "format": "biome format --write .",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "validate": "node scripts/check-syntax.js",
+    "check": "npm run lint && npm run validate && npm test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.2"
+  }
 }

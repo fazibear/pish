@@ -1,17 +1,22 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { configureCursor } from '../src/cursor.js';
+import { test } from 'node:test';
 import { configure } from '../src/config.js';
+import { configureCursor } from '../src/cursor.js';
 
 function fixture() {
   let hardware = false;
   const writes = [];
   return {
-    writes, get hardware() { return hardware; },
+    writes,
+    get hardware() {
+      return hardware;
+    },
     tui: {
       getShowHardwareCursor: () => hardware,
-      setShowHardwareCursor: value => { hardware = value; },
-      terminal: { write: text => writes.push(text) },
+      setShowHardwareCursor: (value) => {
+        hardware = value;
+      },
+      terminal: { write: (text) => writes.push(text) },
     },
   };
 }
@@ -21,7 +26,8 @@ test('bar cursor enables hardware cursor and restores on shutdown', () => {
   const cursor = configureCursor(f.tui, configure());
   assert.equal(f.hardware, true);
   assert.equal(f.writes[0], '\x1b[6 q');
-  cursor.restore(); cursor.restore();
+  cursor.restore();
+  cursor.restore();
   assert.equal(f.hardware, false);
   assert.deepEqual(f.writes, ['\x1b[6 q', '\x1b[0 q']);
 });
@@ -37,7 +43,11 @@ test('busy mode hides hardware cursor to avoid flicker while streaming', () => {
 });
 
 test('all cursor shapes support blinking and steady modes', () => {
-  for (const [cursorShape, blinking, steady] of [['block', 1, 2], ['underline', 3, 4], ['bar', 5, 6]]) {
+  for (const [cursorShape, blinking, steady] of [
+    ['block', 1, 2],
+    ['underline', 3, 4],
+    ['bar', 5, 6],
+  ]) {
     for (const cursorBlink of [true, false]) {
       const f = fixture();
       const cursor = configureCursor(f.tui, configure({ cursorShape, cursorBlink }));

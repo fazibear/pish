@@ -1,6 +1,7 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { test } from 'node:test';
 import { patchWidgetSpacing } from '../src/spacing.js';
+
 test('default editor spacer is disabled without removing widgets', () => {
   class Mode {
     renderWidgetContainer(container, widgets, empty, leading) {
@@ -17,6 +18,7 @@ test('default editor spacer is disabled without removing widgets', () => {
   assert.deepEqual(rows, []);
   mode.renderWidgetContainer(rows, new Map([['widget', 'content']]), true, true);
   assert.deepEqual(rows, ['content']);
-  restore(); restore();
+  restore();
+  restore();
   assert.equal(Mode.prototype.renderWidgetContainer, original);
 });

@@ -1,8 +1,15 @@
 # pish
 
-Shell-inspired terminal UI for pi. Colored full-height `▌` markers on user, assistant,
-code, and tool rows; a borderless input; and a right-aligned status prompt.
-Keeps pi's Markdown, syntax highlighting, tool expansion, and editor shortcuts.
+A shell-inspired terminal UI for [pi](https://pi.dev): colored `▌` markers,
+a borderless editor, and a right-aligned status prompt instead of a separate footer.
+
+- Distinct markers for user messages, replies, thinking, code, tools, and errors.
+- Markdown, syntax highlighting, expandable tools, and editor shortcuts remain available.
+- An animated input marker shows when the agent is working.
+- Configurable colors, cursor appearance, and status placeholders.
+- Optional subscription-quota display through pi-usage.
+
+Pish changes presentation only—not session messages or model context.
 
 ## Install
 
@@ -10,20 +17,33 @@ Keeps pi's Markdown, syntax highlighting, tool expansion, and editor shortcuts.
 pi install git:github.com/fazibear/pish
 ```
 
-Then restart pi. To try without installing:
+Restart pi after installing. To try it without installing:
 
 ```sh
 pi -e git:github.com/fazibear/pish
 ```
 
-## Configure
+## Quick start
 
-Run `/pish-init` to create `~/.pi/agent/pish.json` with all current defaults.
-It creates missing directories and never overwrites an existing file. `textColors`
-is empty by default, inheriting the active pi theme. Set `PISH_CONFIG` to use
-another file; both `/pish-init` and `/pish-reload` respect it.
+Run `/pish-init` inside pi to create a configuration file with all current defaults.
+Edit the file, then run `/pish-reload` to apply your changes.
 
-Or create the file manually:
+The default location is `~/.pi/agent/pish.json`. Set `PISH_CONFIG` to use another
+path. Both commands respect it; `/pish-init` creates missing directories and
+never overwrites an existing file.
+
+| Command | Purpose |
+| --- | --- |
+| `/pish-init` | Create a configuration file with current defaults |
+| `/pish-reload` | Reload appearance settings |
+| `/pish-usage` | Refresh quota data and show integration diagnostics |
+
+## Configuration
+
+All fields are optional. Omitted settings use defaults; omitted marker colors
+inherit their defaults. Colors must use six-digit RGB hex (`#rrggbb`).
+
+A small configuration to start with:
 
 ```json
 {
@@ -31,41 +51,80 @@ Or create the file manually:
   "marerColors": {
     "user": "#2456a6",
     "assistant": "#27633b",
-    "thinking": "#505050",
-    "tool": "#663399",
-    "code": "#574080",
-    "error": "#a63333",
     "input": "#2456a6",
     "right": "#808080"
   },
-  "rightPrompt": "{model} · {thinking} · {context_used}/{context_limit} ({context_percent_used}) · {cwd}"
+  "rightPrompt": "{model} · {thinking} · {context_percent_used} · {dir}",
+  "workingIndicator": "spinner"
 }
 ```
 
-The working indicator replaces the input marker while busy, instead of appearing
-in the right prompt or a separate row. Choose `"workingIndicator": "spinner"`
-(default), `"text"`, or `"none"`. For text mode set `"workingText": "working"`.
-The normal marker returns when idle. The indicator remains visible with long input.
+**The setting is spelled `marerColors`**, not `markerColors`.
+Its available keys are `user`, `assistant`, `thinking`, `tool`, `code`, `error`,
+`input`, and `right`.
+
+### Right prompt
+
+The status appears at the right edge of the first input line. It is truncated
+to at most half the terminal width and hidden on narrow terminals. When input
+needs its space, it disappears rather than forcing input to wrap early.
+Set `rightPrompt` to `""` to hide it entirely.
+
+| Placeholders | Values |
+| --- | --- |
+| `{model}`, `{provider}` | Current model ID and provider |
+| `{thinking}` | Thinking level |
+| `{cwd}`, `{dir}` | Full working directory or its final path component |
+| `{branch}` | Git branch |
+| `{status}` | `idle` or `working` |
+| `{context_used}`, `{context_limit}`, `{context_left}` | Context-window tokens |
+| `{context_percent_used}`, `{context_percent_left}` | Context-window percentages |
+| `{usage}` | Status published by pi-usage, when available |
+
+Context measurements are **not subscription quotas or rate limits**. Unknown
+context values display `?`. See below for subscription-quota placeholders.
+
+### Working indicator
+
+While the agent is busy, the input marker becomes a spinner. It returns to the
+normal marker when idle and remains visible even when long input hides the right
+prompt.
+
+```json
+{
+  "workingIndicator": "text",
+  "workingText": "working"
+}
+```
+
+`workingIndicator` accepts `spinner` (default), `text`, or `none`.
 
 ### Cursor
 
 ```json
-{ "cursorShape": "bar", "cursorBlink": false, "fakeCursorAlways": false }
+{
+  "cursorShape": "bar",
+  "cursorBlink": false,
+  "fakeCursorEnabled": true,
+  "fakeCursorAlways": false,
+  "fakeCursorChar": " ",
+  "fakeCursorColor": "#808080"
+}
 ```
 
-Shapes: `bar` (default), `block`, `underline`, or `default` (pi's normal cursor).
-Set `cursorBlink` to `true` for blinking.
-Set `fakeCursorAlways` to `true` to always use pish's fake underline cursor and
-keep hardware cursor hidden in both idle and working states. The current letter
-is preserved and underlined. At end of input an underlined space is used
-(`fakeCursorChar: " "`). The cursor inherits the surrounding text color without
-changing it. `fakeCursorEnabled` can disable custom fake-cursor styling.
-Requires terminal support. Changes apply with `/pish-reload`; shutdown restores
-the terminal's default cursor shape.
+- `cursorShape`: `bar` (default), `block`, `underline`, or `default` for pi's normal cursor.
+- `cursorBlink`: enable hardware cursor blinking.
+- `fakeCursorEnabled`: enable pish's custom fake-cursor styling.
+- `fakeCursorAlways`: hide the hardware cursor and use the fake underline cursor in both idle and working states.
+- `fakeCursorChar`: character used at the end of input; within text, the current character is preserved.
+
+Cursor behavior depends on terminal support. Apply changes with `/pish-reload`;
+shutdown restores the terminal's default cursor shape.
 
 ### Text colors
 
-`marerColors` controls markers. `textColors` overrides pi foreground theme tokens:
+Markers and text are configured independently. `textColors` is empty by default,
+so text inherits the active pi theme.
 
 ```json
 {
@@ -76,71 +135,85 @@ the terminal's default cursor shape.
     "toolTitle": "#d7af87",
     "toolOutput": "#cccccc",
     "error": "#ff5f5f",
-    "warning": "#ffd787",
-    "customMessageText": "#dddddd",
-    "customMessageLabel": "#af87ff"
+    "warning": "#ffd787"
   }
 }
 ```
 
-Any pi foreground token can be overridden, including `mdCode`, `mdCodeBlock`,
-`syntaxKeyword`, `syntaxString`, and diff tokens. Omitted tokens inherit the active
-theme. Theme-level overrides also affect menus and other pi components using those
-tokens. Markdown and syntax-specific colors still take precedence over base text.
-Use `/pish-reload` to apply changes; bars remain independently configurable.
+Any pi foreground theme token can be overridden, including `mdCode`,
+`mdCodeBlock`, `syntaxKeyword`, `syntaxString`, and diff tokens. Overrides also
+apply to menus and other components using those tokens. Markdown and
+syntax-specific colors take precedence over base text colors.
 
-All fields are optional. Colors use RGB hex. `/pish-reload` rereads settings.
-Set `rightPrompt` to `""` to hide it.
+## Subscription usage with pi-usage
 
-With `@narumitw/pi-usage` installed, include `{usage}` to display its status:
+With `@narumitw/pi-usage` installed, use `{usage}` for its combined status:
 
 ```json
 { "rightPrompt": "{model} · {usage}" }
 ```
 
-For granular structured quotas, use placeholders such as:
+Enable the statusline display in pi-usage's settings so it publishes that status.
+If no status is published, `{usage}` is empty.
+
+For structured quotas, use a pi-usage version exposing the read-only
+`usage:query:v1` API:
 
 ```json
-{ "rightPrompt": "{model} · 5h {usage_5h_percent_left} · 7d {usage_7d_percent_left} · ctx {context_percent_used}" }
+{
+  "rightPrompt": "{model} · ctx {context_percent_used} · 5h {usage_5h_percent_left}/{usage_5h_reset} · 7d {usage_7d_percent_left}/{usage_7d_reset}"
+}
 ```
 
-`{usage_provider}` names the provider. Each bucket exposes
-`{usage_<key>_label}`, `_used`, `_left`, `_limit`, `_unit`, `_percent_used`,
-`_percent_left`, `_reset` (countdown, e.g. `2h 15m` or `3d 4h`), and
-`_reset_at` (ISO timestamp). Keys are normalized bucket IDs;
-window aliases such as `5h` and `7d` are also provided when the provider supplies
-a window duration. Missing/expired reports produce empty placeholders; unknown
-measurements within a report display `?`. Fields depend on provider support.
-Structured quotas use pi-usage's read-only API, refreshing every 60 seconds only
-when a `usage_` placeholder is configured. Polling stops on shutdown.
+`{usage_provider}` gives the provider name. Each reported bucket exposes:
 
-For the original combined `{usage}` field, enable the statusline display in pi-usage's settings. If no usage status is
-published, the placeholder is empty. Provider polling remains owned by pi-usage.
+```text
+{usage_<key>_label}         {usage_<key>_unit}
+{usage_<key>_used}          {usage_<key>_left}
+{usage_<key>_limit}         {usage_<key>_percent_used}
+{usage_<key>_percent_left}  {usage_<key>_reset}
+{usage_<key>_reset_at}
+```
 
-Placeholders: `{usage}`, `{model}`, `{provider}`, `{cwd}`, `{dir}`, `{branch}`,
-`{context_used}`, `{context_limit}`, `{context_left}`, `{context_percent_used}`,
-`{context_percent_left}`, `{thinking}`, `{status}`.
-Limits are **context-window tokens**, not subscription quotas or rate limits
-(which pi does not expose). Unknown usage displays `?`.
+Keys are normalized bucket IDs. Window aliases such as `5h` and `7d` are also
+available when the provider reports a window duration. `_reset` is a countdown
+such as `2h 15m`; `_reset_at` is an ISO timestamp.
 
-The right prompt sits on the first input line, aligned to the terminal's right
-edge. Input and completions reserve its space. Long prompts are truncated to
-half the terminal width; on narrow terminals the right prompt is hidden.
+Available buckets and measurements depend on the provider. Missing or expired
+reports produce empty placeholders; unknown measurements within a report show
+`?`. Pish queries the API every 60 seconds when a `usage_` placeholder is
+configured and stops on shutdown. Pi-usage owns provider access and fetching.
+Use `/pish-usage` to inspect the integration and available fields.
 
-## Compatibility
+## Compatibility and limitations
 
-Targets pi 0.84.2 (`@earendil-works` distribution). Transcript styling uses
-component render-method adapters because pi has no public full-transcript
-layout hook. Messages are built from source using Markdown components; tools
-compose their call/result children directly, without the default Box. No rendered
-ANSI output is rewritten or cleaned up with regex. Patches are restored on shutdown/reload; unsupported versions
-produce a warning. Image rows retain native rendering at column zero. Other extensions
-replacing the editor/footer may conflict. Code markers follow fenced blocks;
-tool output uses the tool color unless it contains fences. This is terminal
-styling only: session messages and model context are unchanged.
+Pish uses the `@earendil-works` distribution of pi.
 
-## Tests
+- Extensions that also replace the editor or footer may conflict.
+- Transcript styling uses internal pi components, so pi updates may require pish
+  updates too.
+- Images keep their native rendering. Code markers follow fenced Markdown blocks.
+- `/pish-reload` applies configuration changes. Restart pi after updating pish.
+
+## Development
+
+Source lives in `src/`; tests live in `test/`. The pi extension entry point is
+`src/index.js`.
+
+Install development tools without downloading pi's runtime peer dependencies:
 
 ```sh
-npm test
+npm ci --ignore-scripts --legacy-peer-deps
 ```
+
+```sh
+npm run format    # Format JavaScript and JSON
+npm run lint      # Check formatting, imports, and lint rules
+npm run lint:fix  # Apply safe formatting and lint fixes
+npm run validate  # Syntax-check every source, test, and tooling script
+npm test          # Run tests
+npm run check     # Run lint, syntax validation, and tests
+```
+
+Biome enforces consistent formatting and recommended lint rules. Control-character
+regexes are allowed because pish handles terminal escape sequences.

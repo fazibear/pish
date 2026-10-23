@@ -1,5 +1,5 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
+import test from 'node:test';
 import { patchUserMessageSpacing } from '../src/spacing.js';
 
 test('submitted messages stay at the prompt row, including subsequent turns', () => {
@@ -24,7 +24,9 @@ test('submitted messages stay at the prompt row, including subsequent turns', ()
     mode.addMessageToChat(reply);
     mode.addMessageToChat(second);
     assert.deepEqual(mode.chatContainer.children, [first, reply, second]);
-  } finally { restore(); }
+  } finally {
+    restore();
+  }
   restore();
   assert.equal(Mode.prototype.addMessageToChat, original);
 });

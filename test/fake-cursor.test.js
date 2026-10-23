@@ -1,23 +1,32 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { styleFakeCursor } from '../src/fake-cursor.js';
+import { test } from 'node:test';
 import { configure } from '../src/config.js';
+import { styleFakeCursor } from '../src/fake-cursor.js';
 
 const marker = '\x1b_pi:c\x07';
 const start = '\x1b_pi:fc\x07';
 const end = '\x1b_pi:/fc\x07';
 const config = configure();
-const underlined = glyph => `\x1b[4m${glyph}\x1b[24m`;
+const underlined = (glyph) => `\x1b[4m${glyph}\x1b[24m`;
 
 test('cursor preserves and underlines the current letter', () => {
-  assert.equal(styleFakeCursor(`a${marker}${start}X${end}b`, config), `a${marker}${underlined('X')}b`);
+  assert.equal(
+    styleFakeCursor(`a${marker}${start}X${end}b`, config),
+    `a${marker}${underlined('X')}b`,
+  );
 });
 test('cursor displays an underlined space at end of input', () => {
   assert.equal(config.fakeCursorChar, ' ');
-  assert.equal(styleFakeCursor(`hello${marker}${start} ${end}`, config), `hello${marker}${underlined(' ')}`);
+  assert.equal(
+    styleFakeCursor(`hello${marker}${start} ${end}`, config),
+    `hello${marker}${underlined(' ')}`,
+  );
 });
 test('cursor preserves multi-codepoint graphemes and following text', () => {
-  assert.equal(styleFakeCursor(`${marker}${start}👩‍💻${end}next`, config), `${marker}${underlined('👩‍💻')}next`);
+  assert.equal(
+    styleFakeCursor(`${marker}${start}👩‍💻${end}next`, config),
+    `${marker}${underlined('👩‍💻')}next`,
+  );
 });
 test('inverse-video fallback preserves the current letter', () => {
   assert.equal(styleFakeCursor('a\x1b[7mX\x1b[27mb', config), `a${underlined('X')}b`);

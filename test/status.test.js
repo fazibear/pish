@@ -1,14 +1,38 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { patchStatusMessages } from '../src/status.js';
+import { test } from 'node:test';
 import { configure, paint } from '../src/config.js';
+import { patchStatusMessages } from '../src/status.js';
+
+test('status patches roll back if an alert method cannot be replaced', () => {
+  class Mode {
+    showStatus() {}
+  }
+  Object.defineProperty(Mode.prototype, 'showError', {
+    value() {},
+    configurable: false,
+    writable: false,
+  });
+  const original = Object.getOwnPropertyDescriptor(Mode.prototype, 'showStatus');
+  assert.throws(() => patchStatusMessages(Mode, configure, {}), TypeError);
+  assert.deepEqual(Object.getOwnPropertyDescriptor(Mode.prototype, 'showStatus'), original);
+});
+
 test('reload status gets bars and consecutive statuses coalesce', () => {
   class Text {
-    constructor(text) { this.text = text; }
-    render() { return this.text.split('\n'); }
+    constructor(text) {
+      this.text = text;
+    }
+    render() {
+      return this.text.split('\n');
+    }
   }
   class Mode {
-    chatContainer = { children: [], addChild(component) { this.children.push(component); } };
+    chatContainer = {
+      children: [],
+      addChild(component) {
+        this.children.push(component);
+      },
+    };
     ui = { requestRender() {} };
     showStatus() {}
     showError() {}
@@ -16,11 +40,18 @@ test('reload status gets bars and consecutive statuses coalesce', () => {
   }
   const original = Mode.prototype.showStatus;
   const config = configure();
-  const restore = patchStatusMessages(Mode, () => config, { Text, visibleWidth: text => text.length });
+  const restore = patchStatusMessages(Mode, () => config, {
+    Text,
+    visibleWidth: (text) => text.length,
+  });
   const mode = new Mode();
   const message = 'Reloaded keybindings, extensions, skills, prompts, themes, and context files';
   mode.showStatus(message);
-  assert.deepEqual(mode.chatContainer.children[0].render(100), [paint(config.marerColors.tool, config.marker) + ' ' + message, '', '']);
+  assert.deepEqual(mode.chatContainer.children[0].render(100), [
+    `${paint(config.marerColors.tool, config.marker)} ${message}`,
+    '',
+    '',
+  ]);
   mode.showStatus('Next status');
   assert.equal(mode.chatContainer.children.length, 1);
   assert.ok(mode.chatContainer.children[0].render(100)[0].endsWith('Next status'));
@@ -35,6 +66,7 @@ test('reload status gets bars and consecutive statuses coalesce', () => {
   const warningRows = mode.chatContainer.children.at(-1).render(100);
   assert.ok(warningRows[0].startsWith(paint(config.marerColors.tool, config.marker)));
   assert.ok(warningRows[0].includes('Warning: If this looks like a pi bug'));
-  restore(); restore();
+  restore();
+  restore();
   assert.equal(Mode.prototype.showStatus, original);
 });
