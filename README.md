@@ -81,6 +81,17 @@ Set `rightPrompt` to `""` to hide it entirely.
 | `{context_percent_used}`, `{context_percent_left}` | Context-window percentages |
 | `{usage}` | Status published by pi-usage, when available |
 
+Use `{#rrggbb}` to color part of the right prompt and `{#}` to restore
+`marerColors.right`:
+
+```json
+{ "rightPrompt": "{#223344}{model}{#} · {thinking} · {#87afff}{dir}{#}" }
+```
+
+Color tags can wrap placeholders or literal text. Colors apply until the next
+color tag or the end of the right prompt; `{#}` resets to the default, not the
+previous color. Invalid color tags are displayed literally.
+
 Context measurements are **not subscription quotas or rate limits**. Unknown
 context values display `?`. See below for subscription-quota placeholders.
 

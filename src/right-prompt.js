@@ -51,7 +51,13 @@ export function rightPrompt(config, ctx, pi, branch = '', usageStatus = '', usag
   // outside the plain-text placeholder sanitizer.
   return format
     .split('{usage}')
-    .map((part) => template(part, values))
+    .map((part) => {
+      // Parse only the configured format, never placeholder values or usage output.
+      const colored = part.replace(/\{#([0-9a-f]{6})?\}/gi, (_, hex) =>
+        paint(hex ? `#${hex}` : config.marerColors.right, '').slice(0, -5),
+      );
+      return template(colored, values);
+    })
     .join(usageStatus);
 }
 
