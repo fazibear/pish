@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { usageValues, createUsageClient, formatReset } from '../usage.js';
+import { usageValues, createUsageClient, formatReset } from '../src/usage.js';
 test('reset displays a compact countdown', () => {
   assert.equal(formatReset(135 * 60000, 0), '2h 15m');
   assert.equal(formatReset((3 * 1440 + 240) * 60000, 0), '3d 4h');

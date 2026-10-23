@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { configure, template, paint } from '../config.js';
+import { configure, template, paint } from '../src/config.js';
 test('defaults and partial overrides', () => {
   const c = configure({ marker: '❯', marerColors: { user: '#112233' } });
   assert.equal(c.marker, '❯');

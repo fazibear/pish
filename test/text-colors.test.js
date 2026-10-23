@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { configure, paint } from '../config.js';
-import { patchTextColors } from '../text-colors.js';
+import { configure, paint } from '../src/config.js';
+import { patchTextColors } from '../src/text-colors.js';
 test('text tokens override independently of bars and reload live', () => {
   class Theme {
     fg(token, text) { return `${token}:${text}`; }

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { patchStatusMessages } from '../status.js';
-import { configure, paint } from '../config.js';
+import { patchStatusMessages } from '../src/status.js';
+import { configure, paint } from '../src/config.js';
 test('reload status gets bars and consecutive statuses coalesce', () => {
   class Text {
     constructor(text) { this.text = text; }

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { patchUserMessageSpacing } from '../spacing.js';
+import { patchUserMessageSpacing } from '../src/spacing.js';
 
 test('submitted messages stay at the prompt row, including subsequent turns', () => {
   class Spacer {}

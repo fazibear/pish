@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { configureCursor } from '../cursor.js';
-import { configure } from '../config.js';
+import { configureCursor } from '../src/cursor.js';
+import { configure } from '../src/config.js';
 
 function fixture() {
   let hardware = false;

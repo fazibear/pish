@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createDefaultConfig } from '../config-file.js';
-import { defaults, configure } from '../config.js';
+import { createDefaultConfig } from '../src/config-file.js';
+import { defaults, configure } from '../src/config.js';
 
 test('creates complete default config, including missing directories', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'pish-config-'));

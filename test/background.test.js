@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { disableBackgrounds } from '../background.js';
+import { disableBackgrounds } from '../src/background.js';
 test('background API is transparent across instances and restored on shutdown', () => {
   class Theme {
     bg(_color, text) { return `background:${text}`; }

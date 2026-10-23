@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { patchWidgetSpacing } from '../spacing.js';
+import { patchWidgetSpacing } from '../src/spacing.js';
 test('default editor spacer is disabled without removing widgets', () => {
   class Mode {
     renderWidgetContainer(container, widgets, empty, leading) {

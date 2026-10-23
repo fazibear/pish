@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { styleFakeCursor } from '../fake-cursor.js';
-import { configure } from '../config.js';
+import { styleFakeCursor } from '../src/fake-cursor.js';
+import { configure } from '../src/config.js';
 
 const marker = '\x1b_pi:c\x07';
 const start = '\x1b_pi:fc\x07';

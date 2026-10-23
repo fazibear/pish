@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { patchUpdates } from '../updates.js';
-import { configure, paint } from '../config.js';
+import { patchUpdates } from '../src/updates.js';
+import { configure, paint } from '../src/config.js';
 class Text {
   constructor(text) { this.text = text; }
   render() { return this.text.split('\n'); }

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { configure } from '../config.js';
-import { rightPrompt, promptLayout, attachRightPrompt, workingIndicator } from '../right-prompt.js';
+import { configure } from '../src/config.js';
+import { rightPrompt, promptLayout, attachRightPrompt, workingIndicator } from '../src/right-prompt.js';
 const utils = { visibleWidth: s => s.length, truncateToWidth: (s, n) => s.slice(0, n) };
 test('working indicator supports text, animation, none and idle', () => {
   assert.equal(workingIndicator(configure(), false, 0), '');

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { patchPendingMessages } from '../pending.js';
-import { configure, paint } from '../config.js';
+import { patchPendingMessages } from '../src/pending.js';
+import { configure, paint } from '../src/config.js';
 test('steering, follow-up and hint get markers; empty queue disappears', () => {
   class Text {
     constructor(text) { this.text = text; }

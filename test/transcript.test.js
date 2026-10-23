@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { configure, paint } from '../config.js';
-import { sections, patchTranscript } from '../transcript.js';
+import { configure, paint } from '../src/config.js';
+import { sections, patchTranscript } from '../src/transcript.js';
 const config = configure();
 class Text {
   constructor(text) { this.text = text; }
