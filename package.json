@@ -1,0 +1,10 @@
+{
+  "name": "pi-pish",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Shell-inspired prompt UI for pi",
+  "keywords": ["pi-package"],
+  "pi": { "extensions": ["./index.ts"] },
+  "peerDependencies": { "@earendil-works/pi-coding-agent": "*", "@earendil-works/pi-tui": "*" },
+  "scripts": { "test": "node --test test/*.test.js" }
+}
