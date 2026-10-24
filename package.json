@@ -1,16 +1,28 @@
 {
-  "name": "pi-pish",
-  "version": "0.1.0",
+  "name": "@fazibear/pish",
+  "version": "0.8.3",
   "type": "module",
   "description": "Shell-inspired prompt UI for pi",
   "keywords": [
-    "pi-package"
+    "pi-package",
+    "pi",
+    "pi-extension",
+    "pi-coding-agent",
+    "pi-agent",
+    "theme"
   ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fazibear/pish.git"
+  },
   "pi": {
+    "image": "https://github.com/fazibear/pish/raw/main/assets/screenshot.png",
     "extensions": [
       "./src/index.js"
     ]
   },
+  "homepage": "https://github.com/fazibear/pish",
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*",
     "@earendil-works/pi-tui": "*"
