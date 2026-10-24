@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="180" viewBox="0 0 1000 180" role="img" aria-labelledby="title desc">
+  <title id="title">Warrning: I did't read the code!</title>
+  <desc id="desc">Large yellow warning banner.</desc>
+  <rect x="3" y="3" width="994" height="174" rx="18" fill="none" stroke="#f4bf36" stroke-width="6"/>
+  <path d="M88 32 150 143H26Z" fill="#f4bf36"/>
+  <path d="M88 69v34" stroke="#241c08" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="88" cy="122" r="6" fill="#241c08"/>
+  <text x="182" y="105" fill="#ffe296" font-family="Arial, Helvetica, sans-serif" font-size="43" font-weight="800">Warrning: I did't read the code!</text>
+</svg>

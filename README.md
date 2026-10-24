@@ -1,4 +1,4 @@
-# pish
+![Warrning: I did't read the code!](assets/warning.svg)
 
 <p align="center">
   <img src="assets/logo.svg" alt="pish logo" width="680">
