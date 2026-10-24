@@ -2,20 +2,53 @@ import { createDefaultConfig } from './config-file.js';
 
 export function registerCommands(
   pi,
-  { configPath, load, applyCursor, redraw, refreshUsage, usageClient },
+  {
+    configPath,
+    load,
+    applyCursor,
+    redraw,
+    refreshUsage,
+    usageClient,
+    getConfig,
+    setAnimation,
+    pickAnimation,
+  },
 ) {
   function register(name, description, handler) {
     pi.registerCommand(name, {
       description,
-      handler: async (_, ctx) => {
+      handler: async (args, ctx) => {
         try {
-          await handler(ctx);
+          await handler(ctx, args);
         } catch (error) {
           ctx.ui.notify(`pish: ${error}`, 'error');
         }
       },
     });
   }
+
+  register('pish-indicator', 'Choose a named working animation', async (ctx, args = '') => {
+    if (ctx.mode !== 'tui') return;
+    const config = getConfig();
+    const sequences =
+      typeof config.workingFrames === 'string'
+        ? { custom: config.workingFrames }
+        : config.workingFrames;
+    const names = Object.keys(sequences);
+    let name = args.trim();
+    if (!name) {
+      const current = typeof config.workingFrames === 'string' ? 'custom' : config.workingAnimation;
+      name = await pickAnimation(ctx, sequences, current);
+      if (!name) return;
+    }
+    if (!Object.hasOwn(sequences, name)) {
+      ctx.ui.notify(`Unknown animation: ${name}. Choose: ${names.join(', ')}`, 'error');
+      return;
+    }
+    setAnimation(name);
+    redraw();
+    ctx.ui.notify(`Working animation: ${name} (this session)`, 'info');
+  });
 
   register('pish-usage', 'Refresh quota and show usage integration diagnostics', async (ctx) => {
     if (ctx.mode !== 'tui') return;

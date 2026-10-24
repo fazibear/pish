@@ -1,3 +1,5 @@
+import { animations } from './animations.js';
+
 const CONTROL_CHARACTERS = /[\x00-\x1f\x7f]/;
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
@@ -37,7 +39,8 @@ export const defaults = {
   rightPrompt:
     '{model} · {thinking} · {context_used}/{context_limit} ({context_percent_used}) · {cwd}',
   textColors: {},
-  workingFrames: '▌▋▊▉█▉▊▋▌▍▎▏▎▍',
+  workingFrames: animations,
+  workingAnimation: 'pulse',
 };
 
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -69,9 +72,28 @@ export function configure(value = {}) {
   requireValid(isMarker(result.marker), 'marker must be 1–8 printable characters');
   requireValid(isPrintableLine(result.rightPrompt), 'rightPrompt must be a single printable line');
   requireValid(
-    isPrintableLine(result.workingFrames) && result.workingFrames.length > 0,
-    'workingFrames must be a non-empty printable string',
+    (isPrintableLine(result.workingFrames) && result.workingFrames.length > 0) ||
+      (isObject(result.workingFrames) &&
+        Object.keys(result.workingFrames).length > 0 &&
+        Object.entries(result.workingFrames).every(
+          ([name, frames]) =>
+            isPrintableLine(name) &&
+            name.length > 0 &&
+            isPrintableLine(frames) &&
+            frames.length > 0,
+        )),
+    'workingFrames must be a non-empty printable string or an object of named sequences',
   );
+  requireValid(
+    isPrintableLine(result.workingAnimation) && result.workingAnimation.length > 0,
+    'workingAnimation must be a non-empty name',
+  );
+  if (isObject(result.workingFrames)) {
+    requireValid(
+      Object.hasOwn(result.workingFrames, result.workingAnimation),
+      'workingAnimation must name a sequence in workingFrames',
+    );
+  }
   requireValid(Object.values(result.marerColors).every(isColor), 'Colors must use #rrggbb');
   return result;
 }

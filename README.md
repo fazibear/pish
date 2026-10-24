@@ -44,6 +44,7 @@ never overwrites an existing file.
 | --- | --- |
 | `/pish-init` | Create a configuration file with current defaults |
 | `/pish-reload` | Reload appearance settings |
+| `/pish-indicator [name]` | Pick a working animation for this session |
 | `/pish-usage` | Refresh quota data and show integration diagnostics |
 
 ## Configuration
@@ -137,24 +138,35 @@ While the agent is busy, the input marker becomes a spinner. It returns to the
 normal marker when idle and remains visible even when long input hides the right
 prompt.
 
-Set the entire animation sequence with `workingFrames`.
-Each Unicode character is one frame, played in order every 100 ms and looped.
-For a thin bar bouncing left ↔ right:
+`workingFrames` is an object of named animation sequences. `workingAnimation`
+selects the active name. Each Unicode character is one frame, played every 100 ms.
 
 ```json
 {
-  "workingFrames": "▏🭰🭱🭲🭳🭴🭵▕🭵🭴🭳🭲🭱🭰"
+  "workingAnimation": "bounce",
+  "workingFrames": {
+    "pulse": "▌▋▊▉█▉▊▋▌▍▎▏▎▍",
+    "bounce": "▏🭰🭱🭲🭳🭴🭵▕🭵🭴🭳🭲🭱🭰"
+  }
 }
 ```
 
-The default is `"▌▋▊▉█▉▊▋▌▍▎▏▎▍"`. Avoid repeating the first frame at the end
+Run `/pish-indicator` for a list with live animated previews beside every name,
+or `/pish-indicator bounce` to select by name. Use ↑/↓ to move, Enter to select,
+and Escape to cancel. The current animation is marked with `●`.
+Command selections last for the session; set `workingAnimation` in your config
+to persist your choice. `/pish-reload` restores the configured selection.
+Legacy single-string `workingFrames` configurations still work.
+
+All animations below, plus `pulse` and `bounce`, are included in the defaults.
+The default selection is `pulse` (`"▌▋▊▉█▉▊▋▌▍▎▏▎▍"`). Avoid repeating the first frame at the end
 unless you want a pause at the loop boundary. Newer Unicode block glyphs require
 font support. Multi-code-point emoji sequences are not supported as single frames.
 Apply changes with `/pish-reload`.
 
 #### Animation examples
 
-Copy any sequence below into `workingFrames`. Each starts and ends with the
+Add any sequence below as a named entry in `workingFrames`. Each starts and ends with the
 idle `▌` marker; the repeated endpoints add a short resting beat between loops.
 
 | Animation | `workingFrames` |
@@ -174,11 +186,14 @@ For example, to use the double heartbeat:
 
 ```json
 {
-  "workingFrames": "▌▋█▋▌▌▋█▋▌▍▎▍▌"
+  "workingAnimation": "heartbeat",
+  "workingFrames": {
+    "heartbeat": "▌▋█▋▌▌▋█▋▌▍▎▍▌"
+  }
 }
 ```
 
-Use `"workingFrames": "▌"` for a static marker while busy.
+Use a sequence of `"▌"` for a static marker while busy.
 
 ### Cursor
 

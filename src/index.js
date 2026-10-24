@@ -20,11 +20,13 @@ import {
   Container,
   Image,
   Markdown,
+  SelectList,
   Spacer,
   Text,
   truncateToWidth,
   visibleWidth,
 } from '@earendil-works/pi-tui';
+import { pickAnimation } from './animation-picker.js';
 import { disableBackgrounds } from './background.js';
 import { registerCommands } from './commands.js';
 import { configure } from './config.js';
@@ -212,6 +214,12 @@ export default function (pi) {
     load,
     refreshUsage,
     usageClient,
+    getConfig: () => config,
+    pickAnimation: (ctx, sequences, current) =>
+      pickAnimation(ctx, sequences, current, { SelectList, truncateToWidth }),
+    setAnimation: (name) => {
+      config = configure({ ...config, workingAnimation: name });
+    },
     applyCursor: () => applyCursor?.(),
     redraw: () => redraw?.(),
   });

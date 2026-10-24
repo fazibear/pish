@@ -12,6 +12,17 @@ test('custom sequences play in order and loop without splitting Unicode glyphs',
   );
 });
 
+test('named animation objects select the configured sequence', () => {
+  const config = configure({
+    workingFrames: { first: 'ab', second: '🭰▕' },
+    workingAnimation: 'second',
+  });
+  assert.equal(workingIndicator(config, true, 0), '🭰');
+  assert.equal(workingIndicator(config, true, 100), '▕');
+  assert.throws(() => configure({ workingFrames: { custom: '' }, workingAnimation: 'custom' }));
+  assert.throws(() => configure({ workingAnimation: 'missing' }), /must name a sequence/);
+});
+
 test('invalid animation sequences are rejected', () => {
   for (const workingFrames of ['', null, [], 1, 'a\nb', '\x1b']) {
     assert.throws(
