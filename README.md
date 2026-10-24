@@ -10,6 +10,8 @@ a borderless editor, and a right-aligned status prompt instead of a separate foo
 ![Pish terminal UI with colored message markers and a right-aligned status prompt](assets/screenshot.png)
 
 - Distinct markers for user messages, replies, thinking, code, tools, and errors.
+- Bars on shell output, compaction and branch summaries, skill invocations,
+  extension messages/entries, and cache, billing, and project-trust notices.
 - Markdown, syntax highlighting, expandable tools, and editor shortcuts remain available.
 - An animated input marker shows when the agent is working.
 - Configurable colors, cursor appearance, and status placeholders.
@@ -65,8 +67,36 @@ A small configuration to start with:
 ```
 
 **The setting is spelled `marerColors`**, not `markerColors`.
-Its available keys are `user`, `assistant`, `thinking`, `tool`, `code`, `error`,
-`input`, and `right`.
+Each block has its own marker color under `marerColors`; text colors are unchanged.
+
+| Keys | Blocks |
+| --- | --- |
+| `user`, `assistant`, `thinking`, `code` | Conversation content |
+| `tool`, `error` | Tool output and errors |
+| `bash`, `bashError` | Shell commands and failed shell commands |
+| `skill` | Skill invocations |
+| `summary`, `compaction` | Branch and compaction summaries |
+| `custom`, `entry` | Extension messages and session entries |
+| `status`, `warning`, `bugReport` | Status, warning, and bug-report hints |
+| `cacheWarming`, `cacheMiss`, `thinkingDrop` | Provider/cache notices |
+| `compactionCost`, `projectTrust` | Billing and project-trust notices |
+| `pending`, `update` | Queued messages and update notifications |
+| `input`, `right` | Input marker and default right-prompt text |
+
+For example:
+
+```json
+{
+  "marerColors": {
+    "skill": "#a798d7",
+    "bash": "#68b78d",
+    "compaction": "#69add0",
+    "custom": "#de8d5a"
+  }
+}
+```
+
+Apply marker color changes with `/pish-reload`.
 
 ### Right prompt
 

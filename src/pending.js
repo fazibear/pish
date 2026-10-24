@@ -18,7 +18,7 @@ export function patchPendingMessages(InteractiveMode, getConfig, { Text, visible
         this.pendingMessagesContainer.addChild({
           invalidate() {},
           render(width) {
-            return renderBlock(width, getConfig(), 'user', visibleWidth, (available) =>
+            return renderBlock(width, getConfig(), 'pending', visibleWidth, (available) =>
               new Text(content, 0, 0).render(available),
             );
           },

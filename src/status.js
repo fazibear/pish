@@ -38,7 +38,7 @@ export function patchStatusMessages(InteractiveMode, getConfig, { Text, visibleW
               last.setText(message);
             } else {
               let content = message;
-              const status = component('tool', () => content);
+              const status = component('status', () => content);
               status.setText = (text) => {
                 content = text;
               };
@@ -61,7 +61,7 @@ export function patchStatusMessages(InteractiveMode, getConfig, { Text, visibleW
               if (this.bugReportHintShown) return;
               this.bugReportHintShown = true;
               this.chatContainer.addChild(
-                component('tool', (config) =>
+                component('bugReport', (config) =>
                   paint(
                     config.textColors.muted ?? config.marerColors.right,
                     'If this looks like a pi bug, /bug sends a report to the developers.',
@@ -76,7 +76,7 @@ export function patchStatusMessages(InteractiveMode, getConfig, { Text, visibleW
 
     for (const [name, level, role, token] of [
       ['showError', 'Error', 'error', 'error'],
-      ['showWarning', 'Warning', 'tool', 'warning'],
+      ['showWarning', 'Warning', 'warning', 'warning'],
     ]) {
       if (typeof Object.getOwnPropertyDescriptor(proto, name)?.value !== 'function') continue;
       undo.push(
@@ -88,7 +88,8 @@ export function patchStatusMessages(InteractiveMode, getConfig, { Text, visibleW
               this.chatContainer.addChild(
                 component(role, (config) =>
                   paint(
-                    config.textColors[token] ?? config.marerColors[role],
+                    config.textColors[token] ??
+                      config.marerColors[role === 'warning' ? 'tool' : role],
                     `${level}: ${message}`,
                   ),
                 ),

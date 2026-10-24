@@ -13,7 +13,7 @@ export function patchUpdates(
     mode.chatContainer.addChild({
       invalidate() {},
       render(width) {
-        return renderBlock(width, getConfig(), 'tool', visibleWidth, (available) => {
+        return renderBlock(width, getConfig(), 'update', visibleWidth, (available) => {
           const rows = new Text(`${heading}\n${body}`, 0, 0).render(available);
           if (note) {
             const theme = mode.getMarkdownThemeWithSettings?.() ?? getMarkdownTheme();

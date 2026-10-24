@@ -2,21 +2,36 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import {
   AssistantMessageComponent,
+  BashExecutionComponent,
+  BranchSummaryMessageComponent,
   CONFIG_DIR_NAME,
+  CompactionSummaryMessageComponent,
   CustomEditor,
+  CustomMessageComponent,
   getMarkdownTheme,
   InteractiveMode,
+  SkillInvocationMessageComponent,
   Theme,
   ToolExecutionComponent,
   UserMessageComponent,
 } from '@earendil-works/pi-coding-agent';
-import { Markdown, Spacer, Text, truncateToWidth, visibleWidth } from '@earendil-works/pi-tui';
+import {
+  Box,
+  Container,
+  Image,
+  Markdown,
+  Spacer,
+  Text,
+  truncateToWidth,
+  visibleWidth,
+} from '@earendil-works/pi-tui';
 import { disableBackgrounds } from './background.js';
 import { registerCommands } from './commands.js';
 import { configure } from './config.js';
 import { loadConfig } from './config-file.js';
 import { configureCursor } from './cursor.js';
 import { createShellEditor } from './editor.js';
+import { patchTranscriptNotices } from './notices.js';
 import { patchPendingMessages } from './pending.js';
 import { patchUserMessageSpacing, patchWidgetSpacing } from './spacing.js';
 import { patchStatusMessages } from './status.js';
@@ -31,9 +46,14 @@ function installTranscript(getConfig, colorText) {
       [UserMessageComponent, 'user'],
       [AssistantMessageComponent, 'assistant'],
       [ToolExecutionComponent, 'tool'],
+      [CompactionSummaryMessageComponent, 'compaction'],
+      [BashExecutionComponent, 'bash'],
+      [BranchSummaryMessageComponent, 'summary'],
+      [SkillInvocationMessageComponent, 'skill'],
+      [CustomMessageComponent, 'custom'],
     ],
     getConfig,
-    { visibleWidth, Markdown, Text, getMarkdownTheme, colorText },
+    { visibleWidth, Markdown, Text, Box, Container, Image, getMarkdownTheme, colorText },
   );
 }
 
@@ -98,6 +118,18 @@ export default function (pi) {
       }),
     );
     installPatch(ctx, 'text colors', () => patchTextColors(Theme, () => config));
+    installPatch(ctx, 'transcript notices', () =>
+      patchTranscriptNotices(InteractiveMode, () => config, {
+        visibleWidth,
+        Markdown,
+        Text,
+        Box,
+        Container,
+        Image,
+        Spacer,
+        getMarkdownTheme,
+      }),
+    );
     try {
       await load();
     } catch (error) {

@@ -1,4 +1,4 @@
-import { paint } from './config.js';
+import { styleBlockLine } from './rendering.js';
 import { sections } from './sections.js';
 
 export { sections } from './sections.js';
@@ -33,7 +33,16 @@ function transformMarkdown(source, instance, messageType, availableWidth) {
 export function patchTranscript(
   targets,
   getConfig,
-  { visibleWidth, Markdown, Text, getMarkdownTheme, colorText = (_token, text) => text },
+  {
+    visibleWidth,
+    Markdown,
+    Text,
+    Box,
+    Container,
+    Image,
+    getMarkdownTheme,
+    colorText = (_token, text) => text,
+  },
 ) {
   const undo = [];
   const restore = () =>
@@ -45,11 +54,17 @@ export function patchTranscript(
       });
 
   function prefix(component, role, width) {
+    if (Image && component instanceof Image) return component.render(width);
+    if (
+      (Box && component.constructor === Box) ||
+      (Container && component.constructor === Container)
+    ) {
+      return component.children.flatMap((child) => prefix(child, role, width));
+    }
     const config = getConfig();
     const available = width - visibleWidth(config.marker) - 1;
     if (available < 1) return [];
-    const marker = paint(config.marerColors[role], config.marker);
-    return component.render(available).map((line) => `${marker} ${line}`);
+    return component.render(available).map((line) => styleBlockLine(config, role, line));
   }
 
   function markdown(source, role, instance, width, type, style) {
@@ -129,6 +144,18 @@ export function patchTranscript(
   const renderers = {
     user: (instance, width) => markdown(instance.text, 'user', instance, width, 'user'),
     assistant,
+    bash: (instance, width) =>
+      prefix(instance.contentContainer, instance.status === 'error' ? 'bashError' : 'bash', width),
+    custom: (instance, width) => prefix(instance.customComponent ?? instance.box, 'custom', width),
+    entry: (instance, width) =>
+      instance.customComponent ? prefix(instance.customComponent, 'entry', width) : [],
+    skill: (instance, width) => instance.children.flatMap((child) => prefix(child, 'skill', width)),
+    summary: (instance, width) =>
+      instance.children.flatMap((child) => prefix(child, 'summary', width)),
+    compaction: (instance, width) => {
+      // Keep pi's collapsed/expanded content and interaction regions, not its padded Box.
+      return instance.children.flatMap((child) => prefix(child, 'compaction', width));
+    },
   };
   try {
     for (const [Component, role] of targets) {
