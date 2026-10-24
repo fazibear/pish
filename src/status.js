@@ -51,6 +51,29 @@ export function patchStatusMessages(InteractiveMode, getConfig, { Text, visibleW
       ),
     );
 
+    if (typeof Object.getOwnPropertyDescriptor(proto, 'suggestBugReport')?.value === 'function') {
+      undo.push(
+        patchMethod(
+          proto,
+          'suggestBugReport',
+          () =>
+            function () {
+              if (this.bugReportHintShown) return;
+              this.bugReportHintShown = true;
+              this.chatContainer.addChild(
+                component('tool', (config) =>
+                  paint(
+                    config.textColors.muted ?? config.marerColors.right,
+                    'If this looks like a pi bug, /bug sends a report to the developers.',
+                  ),
+                ),
+              );
+              this.ui.requestRender();
+            },
+        ),
+      );
+    }
+
     for (const [name, level, role, token] of [
       ['showError', 'Error', 'error', 'error'],
       ['showWarning', 'Warning', 'tool', 'warning'],
