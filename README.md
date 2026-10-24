@@ -217,8 +217,13 @@ shutdown restores the terminal's default cursor shape.
 
 ### Text colors
 
-Markers and text are configured independently. `textColors` is empty by default,
-so text inherits the active pi theme.
+Markers and text are configured independently. The default text palette uses
+soft gray text with lavender, blue, green, and gold accents. The default right
+prompt also includes inline colors, elapsed time, and optional usage quotas.
+
+Set `"textColors": {}` to inherit the active pi theme instead. Providing a
+`textColors` object replaces the default text palette; tokens omitted from that
+object inherit pi's theme.
 
 ```json
 {

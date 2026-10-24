@@ -48,7 +48,7 @@ test('reload status gets bars and consecutive statuses coalesce', () => {
   const message = 'Reloaded keybindings, extensions, skills, prompts, themes, and context files';
   mode.showStatus(message);
   assert.deepEqual(mode.chatContainer.children[0].render(100), [
-    `${paint(config.marerColors.tool, config.marker)} ${message}`,
+    `${paint(config.marerColors.status, config.marker)} ${message}`,
     '',
     '',
   ]);
