@@ -1,6 +1,23 @@
 import { paint, template } from './config.js';
 
-export function rightPrompt(config, ctx, pi, branch = '', usageStatus = '', usageFields = {}) {
+export function formatElapsed(milliseconds) {
+  const seconds = Math.floor(Math.max(0, milliseconds) / 1000);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor(seconds / 60) % 60;
+  if (hours) return `${hours}h ${minutes}m ${seconds % 60}s`;
+  if (minutes) return `${minutes}m ${seconds % 60}s`;
+  return `${seconds}s`;
+}
+
+export function rightPrompt(
+  config,
+  ctx,
+  pi,
+  branch = '',
+  usageStatus = '',
+  usageFields = {},
+  elapsed = 0,
+) {
   const usage = ctx.getContextUsage();
   const limit = ctx.model?.contextWindow;
   const tokens = usage?.tokens;
@@ -9,6 +26,7 @@ export function rightPrompt(config, ctx, pi, branch = '', usageStatus = '', usag
   const values = {
     ...usageFields,
     working: '',
+    elapsed: ctx.isIdle() ? '' : formatElapsed(elapsed),
     model: ctx.model?.id ?? 'no-model',
     provider: ctx.model?.provider ?? '',
     cwd: ctx.cwd,

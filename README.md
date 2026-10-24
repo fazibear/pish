@@ -1,7 +1,13 @@
 # pish
 
+<p align="center">
+  <img src="assets/logo.svg" alt="pish logo" width="680">
+</p>
+
 A shell-inspired terminal UI for [pi](https://pi.dev): colored `▌` markers,
 a borderless editor, and a right-aligned status prompt instead of a separate footer.
+
+![Pish terminal UI with colored message markers and a right-aligned status prompt](assets/screenshot.png)
 
 - Distinct markers for user messages, replies, thinking, code, tools, and errors.
 - Markdown, syntax highlighting, expandable tools, and editor shortcuts remain available.
@@ -76,6 +82,7 @@ Set `rightPrompt` to `""` to hide it entirely.
 | `{cwd}`, `{dir}` | Full working directory or its final path component |
 | `{branch}` | Git branch |
 | `{status}` | `idle` or `working` |
+| `{elapsed}` | Current task runtime, e.g. `42s` or `2m 15s`; empty while idle |
 | `{context_used}`, `{context_limit}`, `{context_left}` | Context-window tokens |
 | `{context_percent_used}`, `{context_percent_left}` | Context-window percentages |
 | `{usage}` | Status published by pi-usage, when available |

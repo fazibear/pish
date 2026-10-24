@@ -13,7 +13,7 @@ export function createShellEditor(
       const { busy, elapsed, ctx, pi, branch, usageStatus, usageValues } = getPromptState();
       const marker = workingIndicator(config, busy, elapsed) || config.marker;
       const prefix = `${paint(config.marerColors.input, marker)} `;
-      const status = rightPrompt(config, ctx, pi, branch, usageStatus, usageValues);
+      const status = rightPrompt(config, ctx, pi, branch, usageStatus, usageValues, elapsed);
       const layout = promptLayout(
         width,
         visibleWidth(marker) + 1,

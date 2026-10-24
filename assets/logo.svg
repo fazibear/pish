@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="220" viewBox="0 0 680 220" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">pish</title>
+  <desc id="desc">A glowing terminal block marker beside the pish wordmark, with a colorful prompt line beneath.</desc>
+  <defs>
+    <linearGradient id="panel" x1="32" y1="32" x2="188" y2="188" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#242B38"/>
+      <stop offset="1" stop-color="#141922"/>
+    </linearGradient>
+    <linearGradient id="marker" x1="70" y1="62" x2="112" y2="160" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A798D7"/>
+      <stop offset=".5" stop-color="#69ADD0"/>
+      <stop offset="1" stop-color="#68B78D"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="32" y1="32" x2="188" y2="188" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A798D7" stop-opacity=".6"/>
+      <stop offset="1" stop-color="#68B78D" stop-opacity=".15"/>
+    </linearGradient>
+  </defs>
+  <!-- An opaque backing keeps the wordmark legible on light and dark pages. -->
+  <rect width="680" height="220" rx="28" fill="#10141C"/>
+  <rect x="32" y="32" width="156" height="156" rx="32" fill="url(#panel)" stroke="url(#edge)" stroke-width="2"/>
+  <rect x="65" y="58" width="44" height="104" rx="3" fill="url(#marker)" opacity=".09"/>
+  <rect x="73" y="64" width="28" height="92" rx="2" fill="url(#marker)"/>
+  <path d="m121 94 17 16-17 16" stroke="#DEE0E1" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M146 143h16" stroke="#CD9A22" stroke-width="5"/>
+  <!-- Path-based lettering: no external fonts or assets. -->
+  <g stroke="#DEE0E1" stroke-width="12" stroke-linecap="square" stroke-linejoin="round">
+    <path d="M236 164V77h30c17 0 26 10 26 27s-9 27-26 27h-30"/>
+    <path d="M320 82v49"/>
+    <path d="M389 80h-24c-10 0-16 5-16 13s6 12 16 14l10 2c10 2 16 6 16 14s-6 13-16 13h-26"/>
+    <path d="M420 52v79m0-31c0-15 10-23 24-23s24 8 24 23v31"/>
+  </g>
+  <rect x="314" y="52" width="12" height="12" fill="#A798D7"/>
+  <path d="M236 183h76" stroke="#A798D7" stroke-width="3"/>
+  <path d="M324 183h40" stroke="#69ADD0" stroke-width="3"/>
+  <path d="M376 183h52" stroke="#68B78D" stroke-width="3"/>
+  <path d="M440 183h28" stroke="#CD9A22" stroke-width="3"/>
+  <g fill="#9DA5A9">
+    <circle cx="558" cy="110" r="3"/>
+    <circle cx="574" cy="110" r="3"/>
+    <circle cx="590" cy="110" r="3"/>
+  </g>
+</svg>
