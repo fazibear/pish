@@ -1,10 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { configure } from '../src/config.js';
-import { attachRightPrompt, promptLayout, rightPrompt } from '../src/right-prompt.js';
+import { attachRightPrompt, displayDirectory, promptLayout, rightPrompt } from '../src/right-prompt.js';
 import { workingIndicator } from '../src/working-indicator.js';
 
 const utils = { visibleWidth: (s) => s.length, truncateToWidth: (s, n) => s.slice(0, n) };
+test('home directory is abbreviated only at a path boundary', () => {
+  assert.equal(displayDirectory('/home/user', '/home/user'), '~');
+  assert.equal(displayDirectory('/home/user/project', '/home/user'), '~/project');
+  assert.equal(displayDirectory('/home/username/project', '/home/user'), '/home/username/project');
+});
 test('working indicator animates only while busy', () => {
   assert.equal(workingIndicator(configure(), false, 0), '');
   assert.notEqual(workingIndicator(configure(), true, 0), workingIndicator(configure(), true, 100));
@@ -79,6 +84,12 @@ test('layout reserves input space and hides on narrow terminals', () => {
   assert.equal(layout.editorWidth, 71);
   assert.equal(promptLayout(15, 2, 'model', utils).right, '');
   assert.equal(promptLayout(80, 2, '', utils).editorWidth, 78);
+});
+test('directory truncation keeps the end of the path', () => {
+  const path = '/very/long/parent/directory/project';
+  const layout = promptLayout(40, 2, `model ${path}`, utils, '', path);
+  assert.equal(layout.right, 'model …ctory/project');
+  assert.equal(promptLayout(100, 2, path, utils, '', path).right, path);
 });
 test('long input hides the right prompt and reclaims width', () => {
   const long = promptLayout(80, 2, 'model', utils, 'x'.repeat(70));

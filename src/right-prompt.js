@@ -1,4 +1,11 @@
+import { homedir } from 'node:os';
+import { sep } from 'node:path';
 import { paint, template } from './config.js';
+
+export function displayDirectory(directory, home = homedir()) {
+  if (directory === home) return '~';
+  return directory.startsWith(home + sep) ? `~${directory.slice(home.length)}` : directory;
+}
 
 export function formatElapsed(milliseconds) {
   const seconds = Math.floor(Math.max(0, milliseconds) / 1000);
@@ -29,7 +36,7 @@ export function rightPrompt(
     elapsed: ctx.isIdle() ? '' : formatElapsed(elapsed),
     model: ctx.model?.id ?? 'no-model',
     provider: ctx.model?.provider ?? '',
-    cwd: ctx.cwd,
+    cwd: displayDirectory(ctx.cwd),
     dir: ctx.cwd.split(/[\\/]/).pop(),
     branch,
     context_used: fmt(tokens),
@@ -61,8 +68,19 @@ export function promptLayout(
   text,
   { visibleWidth, truncateToWidth },
   input = '',
+  directory = '',
 ) {
   const budget = Math.max(0, Math.min(Math.floor(width / 2), width - prefixWidth - 12));
+  // Preserve the useful end of the directory before truncating other fields.
+  const path = displayDirectory(directory).replace(/[\x00-\x1f\x7f]/g, '');
+  if (path && text.includes(path) && visibleWidth(text) > budget) {
+    const characters = Array.from(path);
+    const available = Math.max(1, budget - (visibleWidth(text) - visibleWidth(path)));
+    while (characters.length && visibleWidth(`…${characters.join('')}`) > available) {
+      characters.shift();
+    }
+    text = text.replace(path, `…${characters.join('')}`);
+  }
   let right = text && budget >= 8 ? truncateToWidth(text, budget) : '';
   let reserved = right ? visibleWidth(right) + 2 : 0;
   const longestLine = Math.max(...input.split('\n').map((line) => visibleWidth(line)));

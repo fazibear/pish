@@ -20,6 +20,7 @@ export function createShellEditor(
         status,
         { visibleWidth, truncateToWidth },
         this.getText(),
+        ctx.cwd,
       );
       if (layout.editorWidth < 5) return [...super.render(width), '', ''];
 
