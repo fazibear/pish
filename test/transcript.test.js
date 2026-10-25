@@ -73,7 +73,7 @@ test('thinking and answer are separated by two empty lines', () => {
     restore();
   }
 });
-test('tools bypass box rendering and leave images untouched', () => {
+test('tools bypass box rendering and prefix images', () => {
   class Tool {
     result = { isError: true };
     contentBox = {
@@ -96,7 +96,7 @@ test('tools bypass box rendering and leave images untouched', () => {
   const restore = patchTranscript([[Tool, 'tool']], () => config, deps);
   assert.deepEqual(new Tool().render(80), [
     `${paint(config.marerColors.error, '▌')} failure`,
-    'native-image',
+    `${paint(config.marerColors.error, '▌')} native-image`,
     '',
     '',
   ]);

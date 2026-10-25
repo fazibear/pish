@@ -1,4 +1,5 @@
 import { styleBlockLine } from './rendering.js';
+import { prefixImage } from './image-prefix.js';
 import { sections } from './sections.js';
 
 export { sections } from './sections.js';
@@ -54,7 +55,8 @@ export function patchTranscript(
       });
 
   function prefix(component, role, width) {
-    if (Image && component instanceof Image) return component.render(width);
+    if (Image && component instanceof Image)
+      return prefixImage(component, width, getConfig(), role, visibleWidth);
     if (
       (Box && component.constructor === Box) ||
       (Container && component.constructor === Container)
@@ -136,8 +138,8 @@ export function patchTranscript(
     } else {
       rows.push(...prefix(new Text(instance.formatToolExecution(), 0, 0), role, width));
     }
-    // Image protocols must remain at native column zero, unmodified.
-    for (const image of instance.imageComponents ?? []) rows.push(...image.render(width));
+    for (const image of instance.imageComponents ?? [])
+      rows.push(...prefixImage(image, width, getConfig(), role, visibleWidth));
     return rows;
   }
 

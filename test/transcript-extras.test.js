@@ -72,7 +72,7 @@ test('bash, summary, skill, and custom components render content without chrome'
     assert.deepEqual(new Skill([new Text('skill')]).render(80), [prefix('tool') + 'skill', '', '']);
     assert.deepEqual(new Custom().render(80), [
       prefix('tool') + 'extension',
-      'native-image',
+      prefix('tool') + 'native-image',
       '',
       '',
     ]);

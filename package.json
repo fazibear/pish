@@ -1,6 +1,6 @@
 {
   "name": "@fazibear/pish",
-  "version": "0.8.3",
+  "version": "0.8.5",
   "type": "module",
   "description": "Shell-inspired prompt UI for pi",
   "keywords": [
